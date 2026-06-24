@@ -16,6 +16,10 @@
       [
         {
           "id": "codex",
+          "logo": {
+            "alt": "OpenAI logo",
+            "src": "/openai.svg"
+          },
           "name": "Codex",
           "metrics": [
             {
@@ -44,6 +48,10 @@
         },
         {
           "id": "copilot",
+          "logo": {
+            "alt": "GitHub Copilot logo",
+            "src": "/githubcopilot.svg"
+          },
           "name": "GitHub Copilot",
           "metrics": [
             {
@@ -61,6 +69,10 @@
         },
         {
           "id": "claude",
+          "logo": {
+            "alt": "Claude logo",
+            "src": "/claude.svg"
+          },
           "name": "Claude Code",
           "metrics": [
             {
@@ -89,6 +101,10 @@
         },
         {
           "id": "openrouter",
+          "logo": {
+            "alt": "OpenRouter logo",
+            "src": "/openrouter.svg"
+          },
           "name": "OpenRouter",
           "metrics": [
             {
@@ -264,8 +280,12 @@
       function renderProvider(provider) {
         const card = createElement("article", { className: `provider-card ${provider.id}` });
         const header = createElement("header", { className: "provider-header" });
-        const titleWrapper = createElement("div");
+        const titleWrapper = createElement("div", { className: "provider-title" });
+        const logo = createElement("img", { className: "provider-logo" });
+        logo.alt = provider.logo.alt;
+        logo.src = provider.logo.src;
         titleWrapper.append(createElement("h2", { textContent: provider.name }));
+        titleWrapper.prepend(logo);
         header.append(titleWrapper);
 
         const limitStack = createElement("div", { className: "limit-stack" });

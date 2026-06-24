@@ -106,6 +106,19 @@ h1 {
   padding-top: 0.25rem;
 }
 
+.provider-title {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.provider-logo {
+  flex: 0 0 auto;
+  height: 1.8rem;
+  width: 1.8rem;
+}
+
 .metric-label {
   color: #667487;
   display: block;
