@@ -23,6 +23,11 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
     CLASS-METHODS get_metrics
       RETURNING
         VALUE(rt_providers) TYPE ty_providers.
+
+  PRIVATE SECTION.
+    CLASS-METHODS random_percent
+      RETURNING
+        VALUE(rv_percent) TYPE i.
 ENDCLASS.
 
 CLASS zcl_provider IMPLEMENTATION.
@@ -32,8 +37,8 @@ CLASS zcl_provider IMPLEMENTATION.
         logo = `/openai.svg`
         name = `OpenAI Codex`
         metrics = VALUE #(
-          ( kind = `usage` remaining_percent = 58 reset = `12:52 PM` window = `5 hour` )
-          ( kind = `usage` remaining_percent = 74 reset = `Monday` window = `weekly` ) ) )
+          ( kind = `usage` remaining_percent = random_percent( ) reset = `12:52 PM` window = `5 hour` )
+          ( kind = `usage` remaining_percent = random_percent( ) reset = `Monday` window = `weekly` ) ) )
       ( id = `copilot`
         logo = `/githubcopilot.svg`
         name = `GitHub Copilot`
@@ -43,12 +48,18 @@ CLASS zcl_provider IMPLEMENTATION.
         logo = `/claude.svg`
         name = `Claude Code`
         metrics = VALUE #(
-          ( kind = `usage` remaining_percent = 42 reset = `1:20 PM` window = `5 hour` )
-          ( kind = `usage` remaining_percent = 63 reset = `Monday` window = `weekly` ) ) )
+          ( kind = `usage` remaining_percent = random_percent( ) reset = `1:20 PM` window = `5 hour` )
+          ( kind = `usage` remaining_percent = random_percent( ) reset = `Monday` window = `weekly` ) ) )
       ( id = `openrouter`
         logo = `/openrouter.svg`
         name = `OpenRouter`
         metrics = VALUE #(
           ( kind = `balance` amount = '12.4' ) ) ) ).
+  ENDMETHOD.
+
+  METHOD random_percent.
+    rv_percent = cl_abap_random_int=>create(
+      min = 1
+      max = 100 )->get_next( ).
   ENDMETHOD.
 ENDCLASS.
