@@ -28,10 +28,6 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
         VALUE(rt_providers) TYPE ty_providers.
 
   PRIVATE SECTION.
-    CLASS-METHODS random_percent
-      RETURNING
-        VALUE(rv_percent) TYPE i.
-
     CLASS-METHODS codex_usage
       RETURNING
         VALUE(rt_metrics) TYPE ty_metrics.
@@ -106,9 +102,4 @@ CLASS zcl_provider IMPLEMENTATION.
       error  = ls_balance-error ).
   ENDMETHOD.
 
-  METHOD random_percent.
-    rv_percent = cl_abap_random_int=>create(
-      min = 1
-      max = 100 )->get_next( ).
-  ENDMETHOD.
 ENDCLASS.
