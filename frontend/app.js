@@ -45,6 +45,10 @@ function titleCase(value) {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
+function usageRemainingPercent(metric) {
+  return Number.isFinite(metric.remainingPercent) ? metric.remainingPercent : 0;
+}
+
 function resetText(metric) {
   return metric.reset ? `Resets ${metric.reset}` : "";
 }
@@ -71,7 +75,7 @@ function metricValue(metric) {
   }
 
   if (metric.kind === "usage") {
-    return `${metric.remainingPercent}%`;
+    return `${usageRemainingPercent(metric)}%`;
   }
 
   if (metric.kind === "credits") {
@@ -111,9 +115,11 @@ function metricMeter(metric) {
   }
 
   if (metric.kind === "usage") {
+    const remainingPercent = usageRemainingPercent(metric);
+
     return {
-      level: levelForPercent(metric.remainingPercent),
-      percent: metric.remainingPercent
+      level: levelForPercent(remainingPercent),
+      percent: remainingPercent
     };
   }
 
@@ -135,7 +141,7 @@ function metricAriaLabel(provider, metric) {
       return `${provider.name} ${metric.window} usage limit unavailable`;
     }
 
-    return `${provider.name} ${metric.window} usage limit ${metric.remainingPercent} percent remaining`;
+    return `${provider.name} ${metric.window} usage limit ${usageRemainingPercent(metric)} percent remaining`;
   }
 
   if (metric.kind === "credits") {

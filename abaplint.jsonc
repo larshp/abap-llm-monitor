@@ -19,6 +19,7 @@
     "check_include": true,
     "check_syntax": true,
     "unused_ddic": true,
+    "keyword_case": true,
     "unused_methods": true,
     "aff_and_xml": true,
     "abapdoc": false,
