@@ -53,7 +53,7 @@ CLASS zcl_codex_client DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RETURNING
         VALUE(rv_label) TYPE string.
 
-    CLASS-METHODS format_utc_timestamp
+    CLASS-METHODS format_cet_timestamp
       IMPORTING
         iv_timestamp TYPE timestamp
       RETURNING
@@ -173,7 +173,7 @@ CLASS zcl_codex_client IMPLEMENTATION.
       lv_reset_timestamp = cl_abap_tstmp=>add(
         tstmp = CONV timestamp( '19700101000000' )
         secs  = iv_reset_at ).
-      lv_specific_time = format_utc_timestamp( lv_reset_timestamp ).
+      lv_specific_time = format_cet_timestamp( lv_reset_timestamp ).
     ELSEIF iv_reset_after_seconds > 0.
       DATA(lv_now_utc) = CONV timestamp( 0 ).
 
@@ -187,7 +187,7 @@ CLASS zcl_codex_client IMPLEMENTATION.
       lv_reset_timestamp = cl_abap_tstmp=>add(
         tstmp = lv_now_utc
         secs  = iv_reset_after_seconds ).
-      lv_specific_time = format_utc_timestamp( lv_reset_timestamp ).
+      lv_specific_time = format_cet_timestamp( lv_reset_timestamp ).
     ENDIF.
 
     IF iv_reset_after_seconds >= 86400.
@@ -206,15 +206,18 @@ CLASS zcl_codex_client IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD format_utc_timestamp.
-    DATA(lv_compact) = |{ iv_timestamp }|.
+  METHOD format_cet_timestamp.
+    DATA(lv_cest_timestamp) = cl_abap_tstmp=>add(
+      tstmp = iv_timestamp
+      secs  = 10800 ).
+    DATA(lv_compact) = |{ lv_cest_timestamp }|.
 
     IF strlen( lv_compact ) < 12.
       rv_text = lv_compact.
       RETURN.
     ENDIF.
 
-    rv_text = |{ lv_compact+0(4) }-{ lv_compact+4(2) }-{ lv_compact+6(2) } { lv_compact+8(2) }:{ lv_compact+10(2) } UTC|.
+    rv_text = |{ lv_compact+0(4) }-{ lv_compact+4(2) }-{ lv_compact+6(2) } { lv_compact+8(2) }:{ lv_compact+10(2) } CET|.
   ENDMETHOD.
 
   METHOD window_label.
