@@ -16,102 +16,64 @@
       [
         {
           "id": "codex",
-          "logo": {
-            "alt": "OpenAI logo",
-            "src": "/openai.svg"
-          },
-          "name": "Codex",
+          "logo": "/openai.svg",
+          "name": "OpenAI Codex",
           "metrics": [
             {
-              "label": "5 hour usage limit",
-              "value": "58%",
-              "detail": "remaining",
-              "reset": "Resets 12:52 PM",
-              "meter": {
-                "percent": 58,
-                "level": "medium"
-              },
-              "ariaLabel": "Codex 5 hour usage limit 58 percent remaining"
+              "kind": "usage",
+              "remainingPercent": 58,
+              "reset": "12:52 PM",
+              "window": "5 hour"
             },
             {
-              "label": "Weekly usage limit",
-              "value": "74%",
-              "detail": "remaining",
-              "reset": "Resets Monday",
-              "meter": {
-                "percent": 74,
-                "level": "high"
-              },
-              "ariaLabel": "Codex weekly usage limit 74 percent remaining"
+              "kind": "usage",
+              "remainingPercent": 74,
+              "reset": "Monday",
+              "window": "weekly"
             }
           ]
         },
         {
           "id": "copilot",
-          "logo": {
-            "alt": "GitHub Copilot logo",
-            "src": "/githubcopilot.svg"
-          },
+          "logo": "/githubcopilot.svg",
           "name": "GitHub Copilot",
           "metrics": [
             {
-              "label": "Monthly credits",
-              "value": "6,580 / 25,000",
-              "detail": "used / total",
-              "reset": "Resets July 1, 12:00 AM",
-              "meter": {
-                "percent": 74,
-                "level": "high"
-              },
-              "ariaLabel": "Copilot monthly credits 6580 used of 25000 total, resets July 1 at 12:00 AM"
+              "kind": "credits",
+              "period": "monthly",
+              "reset": "July 1, 12:00 AM",
+              "total": 25000,
+              "used": 6580
             }
           ]
         },
         {
           "id": "claude",
-          "logo": {
-            "alt": "Claude logo",
-            "src": "/claude.svg"
-          },
+          "logo": "/claude.svg",
           "name": "Claude Code",
           "metrics": [
             {
-              "label": "5 hour usage limit",
-              "value": "42%",
-              "detail": "remaining",
-              "reset": "Resets 1:20 PM",
-              "meter": {
-                "percent": 42,
-                "level": "low"
-              },
-              "ariaLabel": "Claude Code 5 hour usage limit 42 percent remaining"
+              "kind": "usage",
+              "remainingPercent": 42,
+              "reset": "1:20 PM",
+              "window": "5 hour"
             },
             {
-              "label": "Weekly usage limit",
-              "value": "63%",
-              "detail": "remaining",
-              "reset": "Resets Monday",
-              "meter": {
-                "percent": 63,
-                "level": "medium"
-              },
-              "ariaLabel": "Claude Code weekly usage limit 63 percent remaining"
+              "kind": "usage",
+              "remainingPercent": 63,
+              "reset": "Monday",
+              "window": "weekly"
             }
           ]
         },
         {
           "id": "openrouter",
-          "logo": {
-            "alt": "OpenRouter logo",
-            "src": "/openrouter.svg"
-          },
+          "logo": "/openrouter.svg",
           "name": "OpenRouter",
           "metrics": [
             {
-              "label": "Account balance",
-              "value": "$12.40",
-              "detail": "remaining",
-              "ariaLabel": "OpenRouter account balance 12 dollars 40 cents remaining"
+              "amount": 12.4,
+              "kind": "balance"
             }
           ]
         }
@@ -158,65 +120,44 @@
       function randomResetTime() {
         const resetDate = new Date();
         resetDate.setMinutes(resetDate.getMinutes() + randomInteger(20, 300));
-        return `Resets ${formatResetTime(resetDate)}`;
-      }
-
-      function randomizePercentMetric(provider, metric) {
-        const percent = randomInteger(20, 95);
-
-        return {
-          ...metric,
-          ariaLabel: `${provider.name} ${metric.label} ${percent} percent remaining`,
-          meter: {
-            ...metric.meter,
-            level: levelForPercent(percent),
-            percent
-          },
-          reset: metric.reset?.includes(":") ? randomResetTime() : metric.reset,
-          value: `${percent}%`
-        };
+        return formatResetTime(resetDate);
       }
 
       function randomizeCreditsMetric(metric) {
-        const total = 25000;
-        const used = randomInteger(1000, 23000);
-        const remainingPercent = Math.round(((total - used) / total) * 100);
+        const used = randomInteger(1000, metric.total - 2000);
 
         return {
           ...metric,
-          ariaLabel: `Copilot monthly credits ${used} used of ${total} total, ${metric.reset.toLowerCase()}`,
-          meter: {
-            ...metric.meter,
-            level: levelForPercent(remainingPercent),
-            percent: remainingPercent
-          },
-          value: `${formatNumber(used)} / ${formatNumber(total)}`
+          used
         };
       }
 
-      function randomizeBalanceMetric(provider, metric) {
-        const balance = randomInteger(250, 5000) / 100;
-        const dollars = Math.floor(balance);
-        const cents = Math.round((balance - dollars) * 100);
-
+      function randomizeUsageMetric(metric) {
         return {
           ...metric,
-          ariaLabel: `${provider.name} account balance ${dollars} dollars ${cents} cents remaining`,
-          value: formatCurrency(balance)
+          remainingPercent: randomInteger(20, 95),
+          reset: metric.reset.includes(":") ? randomResetTime() : metric.reset
         };
       }
 
-      function randomizeMetric(provider, metric) {
-        if (metric.label === "Monthly credits") {
+      function randomizeBalanceMetric(metric) {
+        return {
+          ...metric,
+          amount: randomInteger(250, 5000) / 100
+        };
+      }
+
+      function randomizeMetric(metric) {
+        if (metric.kind === "credits") {
           return randomizeCreditsMetric(metric);
         }
 
-        if (metric.label === "Account balance") {
-          return randomizeBalanceMetric(provider, metric);
+        if (metric.kind === "usage") {
+          return randomizeUsageMetric(metric);
         }
 
-        if (metric.meter) {
-          return randomizePercentMetric(provider, metric);
+        if (metric.kind === "balance") {
+          return randomizeBalanceMetric(metric);
         }
 
         return metric;
@@ -225,8 +166,78 @@
       function randomizeMetricsData(providers) {
         return providers.map((provider) => ({
           ...provider,
-          metrics: provider.metrics.map((metric) => randomizeMetric(provider, metric))
+          metrics: provider.metrics.map(randomizeMetric)
         }));
+      }
+
+      function titleCase(value) {
+        return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+      }
+
+      function resetText(metric) {
+        return metric.reset ? `Resets ${metric.reset}` : "";
+      }
+
+      function metricLabel(metric) {
+        if (metric.kind === "usage") {
+          return `${titleCase(metric.window)} usage limit`;
+        }
+
+        if (metric.kind === "credits") {
+          return `${titleCase(metric.period)} credits`;
+        }
+
+        return "Account balance";
+      }
+
+      function metricValue(metric) {
+        if (metric.kind === "usage") {
+          return `${metric.remainingPercent}%`;
+        }
+
+        if (metric.kind === "credits") {
+          return `${formatNumber(metric.used)} / ${formatNumber(metric.total)}`;
+        }
+
+        return formatCurrency(metric.amount);
+      }
+
+      function metricDetail(metric) {
+        return metric.kind === "credits" ? "used / total" : "remaining";
+      }
+
+      function metricMeter(metric) {
+        if (metric.kind === "usage") {
+          return {
+            level: levelForPercent(metric.remainingPercent),
+            percent: metric.remainingPercent
+          };
+        }
+
+        if (metric.kind === "credits") {
+          const remainingPercent = Math.round(((metric.total - metric.used) / metric.total) * 100);
+
+          return {
+            level: levelForPercent(remainingPercent),
+            percent: remainingPercent
+          };
+        }
+
+        return null;
+      }
+
+      function metricAriaLabel(provider, metric) {
+        if (metric.kind === "usage") {
+          return `${provider.name} ${metric.window} usage limit ${metric.remainingPercent} percent remaining`;
+        }
+
+        if (metric.kind === "credits") {
+          return `${provider.name} ${metric.period} credits ${metric.used} used of ${metric.total} total, ${resetText(metric).toLowerCase()}`;
+        }
+
+        const dollars = Math.floor(metric.amount);
+        const cents = Math.round((metric.amount - dollars) * 100);
+        return `${provider.name} account balance ${dollars} dollars ${cents} cents remaining`;
       }
 
       function createElement(tagName, options = {}) {
@@ -243,32 +254,32 @@
         return element;
       }
 
-      function renderMeter(metric) {
-        if (!metric.meter) {
+      function renderMeter(meterData) {
+        if (!meterData) {
           return null;
         }
 
         const meter = createElement("div", { className: "usage-meter" });
-        const fill = createElement("span", { className: `meter-${metric.meter.level}` });
-        fill.style.width = `${metric.meter.percent}%`;
+        const fill = createElement("span", { className: `meter-${meterData.level}` });
+        fill.style.width = `${meterData.percent}%`;
         meter.append(fill);
         return meter;
       }
 
-      function renderMetric(metric) {
+      function renderMetric(provider, metric) {
         const block = createElement("section", { className: "limit-block" });
-        block.setAttribute("aria-label", metric.ariaLabel);
+        block.setAttribute("aria-label", metricAriaLabel(provider, metric));
         block.append(
-          createElement("span", { className: "metric-label", textContent: metric.label }),
-          createElement("strong", { textContent: metric.value }),
-          createElement("span", { className: "limit-detail", textContent: metric.detail })
+          createElement("span", { className: "metric-label", textContent: metricLabel(metric) }),
+          createElement("strong", { textContent: metricValue(metric) }),
+          createElement("span", { className: "limit-detail", textContent: metricDetail(metric) })
         );
 
         if (metric.reset) {
-          block.append(createElement("span", { className: "reset-time", textContent: metric.reset }));
+          block.append(createElement("span", { className: "reset-time", textContent: resetText(metric) }));
         }
 
-        const meter = renderMeter(metric);
+        const meter = renderMeter(metricMeter(metric));
 
         if (meter) {
           block.append(meter);
@@ -282,14 +293,14 @@
         const header = createElement("header", { className: "provider-header" });
         const titleWrapper = createElement("div", { className: "provider-title" });
         const logo = createElement("img", { className: "provider-logo" });
-        logo.alt = provider.logo.alt;
-        logo.src = provider.logo.src;
+        logo.alt = `${provider.name} logo`;
+        logo.src = provider.logo;
         titleWrapper.append(createElement("h2", { textContent: provider.name }));
         titleWrapper.prepend(logo);
         header.append(titleWrapper);
 
         const limitStack = createElement("div", { className: "limit-stack" });
-        limitStack.append(...provider.metrics.map(renderMetric));
+        limitStack.append(...provider.metrics.map((metric) => renderMetric(provider, metric)));
 
         card.append(header, limitStack);
         return card;
