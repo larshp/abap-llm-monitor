@@ -1,7 +1,9 @@
 const providerGrid = document.getElementById("provider-grid");
 const refreshStatus = document.getElementById("refresh-status");
-const refreshIntervalMs = 5000;
+const refreshButton = document.getElementById("refresh-button");
+const refreshIntervalMs = 10 * 60 * 1000;
 const minimumLoadingMs = 200;
+let isRefreshing = false;
 
 function delay(ms) {
   return new Promise((resolve) => {
@@ -324,6 +326,12 @@ async function loadMetrics() {
 }
 
 async function refreshMetrics() {
+  if (isRefreshing) {
+    return;
+  }
+
+  isRefreshing = true;
+  refreshButton.disabled = true;
   const minimumLoadingDelay = showRefreshStatus();
 
   try {
@@ -338,8 +346,14 @@ async function refreshMetrics() {
   } finally {
     await minimumLoadingDelay;
     refreshStatus.hidden = true;
+    refreshButton.disabled = false;
+    isRefreshing = false;
   }
 }
+
+refreshButton.addEventListener("click", () => {
+  refreshMetrics();
+});
 
 refreshMetrics();
 setInterval(refreshMetrics, refreshIntervalMs);

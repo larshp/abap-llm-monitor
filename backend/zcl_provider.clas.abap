@@ -57,13 +57,13 @@ CLASS zcl_provider IMPLEMENTATION.
         logo = `/githubcopilot.svg`
         name = `GitHub Copilot`
         metrics = VALUE #(
-          ( kind = `credits` period = `monthly` reset = `July 1, 12:00 AM` total = 25000 used = 6580 ) ) )
+          ( kind = `credits` period = `monthly` reset = `?` total = 25000 used = 0 ) ) )
       ( id = `claude`
         logo = `/claude.svg`
         name = `Claude Code`
         metrics = VALUE #(
-          ( kind = `usage` remaining_percent = random_percent( ) reset = `1:20 PM` window = `5 hour` )
-          ( kind = `usage` remaining_percent = random_percent( ) reset = `Monday` window = `weekly` ) ) )
+          ( kind = `usage` remaining_percent = 0 reset = `?` window = `5 hour` )
+          ( kind = `usage` remaining_percent = 0 reset = `?` window = `weekly` ) ) )
       ( id = `openrouter`
         logo = `/openrouter.svg`
         name = `OpenRouter`
