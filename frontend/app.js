@@ -1,9 +1,41 @@
 const providerGrid = document.getElementById("provider-grid");
 const refreshStatus = document.getElementById("refresh-status");
 const refreshButton = document.getElementById("refresh-button");
+const themeToggleButton = document.getElementById("theme-toggle-button");
 const refreshIntervalMs = 10 * 60 * 1000;
 const minimumLoadingMs = 200;
+const themeStorageKey = "llm-monitor-theme";
 let isRefreshing = false;
+
+function applyTheme(theme) {
+  const dimmedMode = theme === "dimmed";
+  document.body.classList.toggle("dimmed-mode", dimmedMode);
+
+  if (themeToggleButton) {
+    themeToggleButton.textContent = dimmedMode ? "Light mode" : "Dim mode";
+    themeToggleButton.setAttribute("aria-pressed", String(dimmedMode));
+  }
+}
+
+function initializeTheme() {
+  try {
+    const storedTheme = localStorage.getItem(themeStorageKey);
+    applyTheme(storedTheme === "dimmed" ? "dimmed" : "light");
+  } catch {
+    applyTheme("light");
+  }
+}
+
+function toggleTheme() {
+  const nextTheme = document.body.classList.contains("dimmed-mode") ? "light" : "dimmed";
+  applyTheme(nextTheme);
+
+  try {
+    localStorage.setItem(themeStorageKey, nextTheme);
+  } catch {
+    // Ignore persistence errors and keep runtime toggle behavior.
+  }
+}
 
 function delay(ms) {
   return new Promise((resolve) => {
@@ -355,5 +387,10 @@ refreshButton.addEventListener("click", () => {
   refreshMetrics();
 });
 
+themeToggleButton.addEventListener("click", () => {
+  toggleTheme();
+});
+
+initializeTheme();
 refreshMetrics();
 setInterval(refreshMetrics, refreshIntervalMs);
