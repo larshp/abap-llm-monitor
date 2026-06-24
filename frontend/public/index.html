@@ -9,88 +9,165 @@
   <body>
     <main class="shell">
       <section class="dashboard" aria-labelledby="page-title">
-        <div class="provider-grid" aria-label="LLM provider usage panels">
-          <article class="provider-card codex">
-            <header class="provider-header">
-              <div>
-                <h2>Codex</h2>
-              </div>
-            </header>
-            <div class="limit-stack">
-              <section class="limit-block" aria-label="Codex 5 hour usage limit 58 percent remaining">
-                <span class="metric-label">5 hour usage limit</span>
-                <strong>58%</strong>
-                <span class="limit-detail">remaining</span>
-                <span class="reset-time">Resets 12:52 PM</span>
-                <div class="usage-meter"><span class="meter-medium" style="width: 58%"></span></div>
-              </section>
-              <section class="limit-block" aria-label="Codex weekly usage limit 74 percent remaining">
-                <span class="metric-label">Weekly usage limit</span>
-                <strong>74%</strong>
-                <span class="limit-detail">remaining</span>
-                <span class="reset-time">Resets Monday</span>
-                <div class="usage-meter"><span class="meter-high" style="width: 74%"></span></div>
-              </section>
-            </div>
-          </article>
-
-          <article class="provider-card copilot">
-            <header class="provider-header">
-              <div>
-                <h2>GitHub Copilot</h2>
-              </div>
-            </header>
-            <div class="limit-stack">
-              <section class="limit-block" aria-label="Copilot monthly credits 6580 used of 25000 total, resets July 1 at 12:00 AM">
-                <span class="metric-label">Monthly credits</span>
-                <strong>6,580 / 25,000</strong>
-                <span class="limit-detail">used / total</span>
-                <span class="reset-time">Resets July 1, 12:00 AM</span>
-                <div class="usage-meter"><span class="meter-high" style="width: 74%"></span></div>
-              </section>
-            </div>
-          </article>
-
-          <article class="provider-card claude">
-            <header class="provider-header">
-              <div>
-                <h2>Claude Code</h2>
-              </div>
-            </header>
-            <div class="limit-stack">
-              <section class="limit-block" aria-label="Claude Code 5 hour usage limit 42 percent remaining">
-                <span class="metric-label">5 hour usage limit</span>
-                <strong>42%</strong>
-                <span class="limit-detail">remaining</span>
-                <span class="reset-time">Resets 1:20 PM</span>
-                <div class="usage-meter"><span class="meter-low" style="width: 42%"></span></div>
-              </section>
-              <section class="limit-block" aria-label="Claude Code weekly usage limit 63 percent remaining">
-                <span class="metric-label">Weekly usage limit</span>
-                <strong>63%</strong>
-                <span class="limit-detail">remaining</span>
-                <span class="reset-time">Resets Monday</span>
-                <div class="usage-meter"><span class="meter-medium" style="width: 63%"></span></div>
-              </section>
-            </div>
-          </article>
-
-          <article class="provider-card openrouter">
-            <header class="provider-header">
-              <div>
-                <h2>OpenRouter</h2>
-              </div>
-            </header>
-            <div class="limit-stack">
-              <section class="limit-block" aria-label="OpenRouter account balance 12 dollars 40 cents remaining">
-                <span class="metric-label">Account balance</span>
-                <strong>$12.40</strong>
-                <span class="limit-detail">remaining</span>
-              </section>
-            </div>
-          </article>
-        </div>
+        <div class="provider-grid" aria-label="LLM provider usage panels" id="provider-grid"></div>
       </section>
     </main>
+    <script id="metrics-data" type="application/json">
+      [
+        {
+          "id": "codex",
+          "name": "Codex",
+          "metrics": [
+            {
+              "label": "5 hour usage limit",
+              "value": "58%",
+              "detail": "remaining",
+              "reset": "Resets 12:52 PM",
+              "meter": {
+                "percent": 58,
+                "level": "medium"
+              },
+              "ariaLabel": "Codex 5 hour usage limit 58 percent remaining"
+            },
+            {
+              "label": "Weekly usage limit",
+              "value": "74%",
+              "detail": "remaining",
+              "reset": "Resets Monday",
+              "meter": {
+                "percent": 74,
+                "level": "high"
+              },
+              "ariaLabel": "Codex weekly usage limit 74 percent remaining"
+            }
+          ]
+        },
+        {
+          "id": "copilot",
+          "name": "GitHub Copilot",
+          "metrics": [
+            {
+              "label": "Monthly credits",
+              "value": "6,580 / 25,000",
+              "detail": "used / total",
+              "reset": "Resets July 1, 12:00 AM",
+              "meter": {
+                "percent": 74,
+                "level": "high"
+              },
+              "ariaLabel": "Copilot monthly credits 6580 used of 25000 total, resets July 1 at 12:00 AM"
+            }
+          ]
+        },
+        {
+          "id": "claude",
+          "name": "Claude Code",
+          "metrics": [
+            {
+              "label": "5 hour usage limit",
+              "value": "42%",
+              "detail": "remaining",
+              "reset": "Resets 1:20 PM",
+              "meter": {
+                "percent": 42,
+                "level": "low"
+              },
+              "ariaLabel": "Claude Code 5 hour usage limit 42 percent remaining"
+            },
+            {
+              "label": "Weekly usage limit",
+              "value": "63%",
+              "detail": "remaining",
+              "reset": "Resets Monday",
+              "meter": {
+                "percent": 63,
+                "level": "medium"
+              },
+              "ariaLabel": "Claude Code weekly usage limit 63 percent remaining"
+            }
+          ]
+        },
+        {
+          "id": "openrouter",
+          "name": "OpenRouter",
+          "metrics": [
+            {
+              "label": "Account balance",
+              "value": "$12.40",
+              "detail": "remaining",
+              "ariaLabel": "OpenRouter account balance 12 dollars 40 cents remaining"
+            }
+          ]
+        }
+      ]
+    </script>
+    <script>
+      const metricsData = JSON.parse(document.getElementById("metrics-data").textContent);
+      const providerGrid = document.getElementById("provider-grid");
+
+      function createElement(tagName, options = {}) {
+        const element = document.createElement(tagName);
+
+        if (options.className) {
+          element.className = options.className;
+        }
+
+        if (options.textContent) {
+          element.textContent = options.textContent;
+        }
+
+        return element;
+      }
+
+      function renderMeter(metric) {
+        if (!metric.meter) {
+          return null;
+        }
+
+        const meter = createElement("div", { className: "usage-meter" });
+        const fill = createElement("span", { className: `meter-${metric.meter.level}` });
+        fill.style.width = `${metric.meter.percent}%`;
+        meter.append(fill);
+        return meter;
+      }
+
+      function renderMetric(metric) {
+        const block = createElement("section", { className: "limit-block" });
+        block.setAttribute("aria-label", metric.ariaLabel);
+        block.append(
+          createElement("span", { className: "metric-label", textContent: metric.label }),
+          createElement("strong", { textContent: metric.value }),
+          createElement("span", { className: "limit-detail", textContent: metric.detail })
+        );
+
+        if (metric.reset) {
+          block.append(createElement("span", { className: "reset-time", textContent: metric.reset }));
+        }
+
+        const meter = renderMeter(metric);
+
+        if (meter) {
+          block.append(meter);
+        }
+
+        return block;
+      }
+
+      function renderProvider(provider) {
+        const card = createElement("article", { className: `provider-card ${provider.id}` });
+        const header = createElement("header", { className: "provider-header" });
+        const titleWrapper = createElement("div");
+        titleWrapper.append(createElement("h2", { textContent: provider.name }));
+        header.append(titleWrapper);
+
+        const limitStack = createElement("div", { className: "limit-stack" });
+        limitStack.append(...provider.metrics.map(renderMetric));
+
+        card.append(header, limitStack);
+        return card;
+      }
+
+      providerGrid.append(...metricsData.map(renderProvider));
+    </script>
   </body>
 </html>
