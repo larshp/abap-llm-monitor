@@ -1,11 +1,11 @@
-CLASS zcl_metrics_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS get_metrics_json
       RETURNING
         VALUE(rv_json) TYPE string.
 ENDCLASS.
 
-CLASS zcl_metrics_provider IMPLEMENTATION.
+CLASS zcl_provider IMPLEMENTATION.
   METHOD get_metrics_json.
     rv_json =
       '[' &&

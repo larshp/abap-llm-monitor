@@ -16,7 +16,7 @@ app.all(["/metrics", "/metrics.json"], async (request, response) => {
   await cl_express_icf_shim.run({
     req: request,
     res: response,
-    class: "ZCL_METRICS_ICF_HANDLER",
+    class: "ZCL_ICF_HANDLER",
   });
 });
 
