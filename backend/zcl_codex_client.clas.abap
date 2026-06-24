@@ -53,6 +53,12 @@ CLASS zcl_codex_client DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RETURNING
         VALUE(rv_label) TYPE string.
 
+    CLASS-METHODS format_cet_timestamp
+      IMPORTING
+        iv_timestamp TYPE timestamp
+      RETURNING
+        VALUE(rv_text) TYPE string.
+
     CLASS-METHODS window_label
       IMPORTING
         iv_seconds TYPE i
@@ -160,6 +166,30 @@ CLASS zcl_codex_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD reset_label.
+    DATA lv_reset_timestamp TYPE timestamp.
+    DATA lv_specific_time TYPE string.
+
+    IF iv_reset_at > 0.
+      lv_reset_timestamp = cl_abap_tstmp=>add(
+        tstmp = CONV timestamp( '19700101000000' )
+        secs  = iv_reset_at ).
+      lv_specific_time = format_cet_timestamp( lv_reset_timestamp ).
+    ELSEIF iv_reset_after_seconds > 0.
+      DATA(lv_now_utc) = CONV timestamp( 0 ).
+
+      cl_abap_tstmp=>systemtstmp_syst2utc(
+        EXPORTING
+          syst_date = sy-datum
+          syst_time = sy-uzeit
+        IMPORTING
+          utc_tstmp = lv_now_utc ).
+
+      lv_reset_timestamp = cl_abap_tstmp=>add(
+        tstmp = lv_now_utc
+        secs  = iv_reset_after_seconds ).
+      lv_specific_time = format_cet_timestamp( lv_reset_timestamp ).
+    ENDIF.
+
     IF iv_reset_after_seconds >= 86400.
       rv_label = |in { iv_reset_after_seconds DIV 86400 } day(s)|.
     ELSEIF iv_reset_after_seconds >= 3600.
@@ -167,8 +197,27 @@ CLASS zcl_codex_client IMPLEMENTATION.
     ELSEIF iv_reset_after_seconds > 0.
       rv_label = |in { iv_reset_after_seconds DIV 60 } minute(s)|.
     ELSEIF iv_reset_at > 0.
-      rv_label = |at { iv_reset_at }|.
+      rv_label = |at { lv_specific_time }|.
     ENDIF.
+
+    IF rv_label IS NOT INITIAL AND lv_specific_time IS NOT INITIAL
+        AND rv_label NS `at `.
+      rv_label = |{ rv_label } at { lv_specific_time }|.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD format_cet_timestamp.
+    DATA(lv_cest_timestamp) = cl_abap_tstmp=>add(
+      tstmp = iv_timestamp
+      secs  = 10800 ).
+    DATA(lv_compact) = |{ lv_cest_timestamp }|.
+
+    IF strlen( lv_compact ) < 12.
+      rv_text = lv_compact.
+      RETURN.
+    ENDIF.
+
+    rv_text = |{ lv_compact+0(4) }-{ lv_compact+4(2) }-{ lv_compact+6(2) } { lv_compact+8(2) }:{ lv_compact+10(2) } CET|.
   ENDMETHOD.
 
   METHOD window_label.

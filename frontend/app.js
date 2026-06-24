@@ -12,7 +12,7 @@ function applyTheme(theme) {
   document.body.classList.toggle("dimmed-mode", dimmedMode);
 
   if (themeToggleButton) {
-    themeToggleButton.textContent = dimmedMode ? "Light mode" : "Dim mode";
+    themeToggleButton.textContent = dimmedMode ? "Light mode" : "Dark mode";
     themeToggleButton.setAttribute("aria-pressed", String(dimmedMode));
   }
 }
@@ -243,6 +243,7 @@ function updateMeter(meter, meterData) {
 
 function updateMetric(block, provider, metric) {
   block.setAttribute("aria-label", metricAriaLabel(provider, metric));
+  block.classList.toggle("usage-inline-detail", metric.kind === "usage");
   block.querySelector(".metric-label").textContent = metricLabel(metric);
   block.querySelector("strong").textContent = metricValue(metric);
   block.querySelector(".limit-detail").textContent = metricDetail(metric);
@@ -258,6 +259,7 @@ function updateMetric(block, provider, metric) {
 
 function renderMetric(provider, metric) {
   const block = createElement("section", { className: "limit-block" });
+  block.classList.toggle("usage-inline-detail", metric.kind === "usage");
   block.setAttribute("aria-label", metricAriaLabel(provider, metric));
   block.append(
     createElement("span", { className: "metric-label", textContent: metricLabel(metric) }),
