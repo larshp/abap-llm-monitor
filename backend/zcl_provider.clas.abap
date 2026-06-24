@@ -32,10 +32,6 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RETURNING
         VALUE(rv_percent) TYPE i.
 
-    CLASS-METHODS codex_quota
-      RETURNING
-        VALUE(rs_metric) TYPE ty_metric.
-
     CLASS-METHODS codex_usage
       RETURNING
         VALUE(rt_metrics) TYPE ty_metrics.
@@ -46,8 +42,9 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 CLASS zcl_provider IMPLEMENTATION.
+
   METHOD get_metrics.
-    DATA(lt_codex_metrics) = VALUE ty_metrics( ( codex_quota( ) ) ).
+    DATA(lt_codex_metrics) = VALUE ty_metrics( ).
 
     APPEND LINES OF codex_usage( ) TO lt_codex_metrics.
 
@@ -72,34 +69,6 @@ CLASS zcl_provider IMPLEMENTATION.
         name = `OpenRouter`
         metrics = VALUE #(
           ( openrouter_balance( ) ) ) ) ).
-  ENDMETHOD.
-
-  METHOD codex_quota.
-    DATA(lv_plan) = to_lower( zcl_env_config=>codex_plan ).
-
-    REPLACE ALL OCCURRENCES OF `_` IN lv_plan WITH `-`.
-
-    rs_metric = VALUE #( kind = `quota` ).
-
-    CASE lv_plan.
-      WHEN `plus`.
-        rs_metric-quota = `Plus`.
-        rs_metric-multiplier = 1.
-      WHEN `pro` OR `pro-100` OR `pro-5x`.
-        rs_metric-quota = `Pro 5x`.
-        rs_metric-multiplier = 5.
-      WHEN `pro-200` OR `pro-20x`.
-        rs_metric-quota = `Pro 20x`.
-        rs_metric-multiplier = 20.
-      WHEN `business` OR `business-standard`.
-        rs_metric-quota = `Business standard seat`.
-      WHEN `business-usage` OR `business-usage-based`.
-        rs_metric-quota = `Business usage-based seat`.
-      WHEN `enterprise` OR `edu`.
-        rs_metric-quota = `Enterprise/Edu workspace`.
-      WHEN OTHERS.
-        rs_metric-error = `Set CODEX_PLAN to plus, pro-100, pro-200, business-standard, business-usage, enterprise, or edu`.
-    ENDCASE.
   ENDMETHOD.
 
   METHOD codex_usage.

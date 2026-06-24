@@ -12,10 +12,8 @@ const publicDir = join(dirname(fileURLToPath(import.meta.url)), "frontend");
 export const serverUrl = `http://${host}:${port}`;
 
 await initializeABAP();
-zcl_env_config.codex_access_token.set(process.env.CODEX_ACCESS_TOKEN || process.env.CODEX_API_KEY || "");
-zcl_env_config.codex_account_id.set(process.env.CODEX_ACCOUNT_ID || process.env.CHATGPT_ACCOUNT_ID || "");
-zcl_env_config.codex_plan.set(process.env.CODEX_PLAN || process.env.CHATGPT_PLAN || "");
-zcl_env_config.codex_usage_url.set(process.env.CODEX_USAGE_URL || "https://chatgpt.com/backend-api/wham/usage");
+zcl_env_config.codex_access_token.set(process.env.CODEX_API_KEY || "");
+zcl_env_config.codex_account_id.set(process.env.CODEX_ACCOUNT_ID || "");
 zcl_env_config.openrouter_api_key.set(process.env.OPENROUTER_API_KEY || "");
 
 const app = express();
