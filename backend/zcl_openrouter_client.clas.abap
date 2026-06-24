@@ -28,7 +28,7 @@ CLASS zcl_openrouter_client IMPLEMENTATION.
     DATA(lv_response) = ``.
     DATA(ls_response) = VALUE ty_openrouter_response( ).
 
-    IF zcl_icf_handler=>openrouter_api_key IS INITIAL.
+    IF zcl_env_config=>openrouter_api_key IS INITIAL.
       rs_balance-error = `Missing OPENROUTER_API_KEY`.
       RETURN.
     ENDIF.
@@ -36,7 +36,7 @@ CLASS zcl_openrouter_client IMPLEMENTATION.
     TRY.
         cl_http_client=>create_by_url(
           EXPORTING
-            url    = zcl_icf_handler=>openrouter_credits_url
+            url    = zcl_env_config=>openrouter_credits_url
           IMPORTING
             client = li_client ).
 
@@ -45,7 +45,7 @@ CLASS zcl_openrouter_client IMPLEMENTATION.
           value = `application/json` ).
         li_client->request->set_header_field(
           name  = `authorization`
-          value = |Bearer { zcl_icf_handler=>openrouter_api_key }| ).
+          value = |Bearer { zcl_env_config=>openrouter_api_key }| ).
 
         li_client->send( ).
         li_client->receive( ).

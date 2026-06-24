@@ -1,9 +1,6 @@
 CLASS zcl_icf_handler DEFINITION PUBLIC FINAL CREATE PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_http_extension.
-
-    CLASS-DATA openrouter_api_key TYPE string.
-    CLASS-DATA openrouter_credits_url TYPE string VALUE `https://openrouter.ai/api/v1/credits`.
 ENDCLASS.
 
 CLASS zcl_icf_handler IMPLEMENTATION.
