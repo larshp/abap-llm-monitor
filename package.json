@@ -5,7 +5,7 @@
   "description": "Monitor LLM usage and more",
   "main": "index.js",
   "scripts": {
-    "backend": "rm -rf output && abap_transpile && node backend.mjs",
+    "backend": "rm -rf output && abap_transpile && node --env-file=.env backend.mjs",
     "frontend": "node frontend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

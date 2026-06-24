@@ -10,6 +10,7 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
         total             TYPE i,
         used              TYPE i,
         amount            TYPE f,
+        error             TYPE string,
       END OF ty_metric,
       ty_metrics TYPE STANDARD TABLE OF ty_metric WITH EMPTY KEY,
       BEGIN OF ty_provider,
@@ -28,6 +29,10 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
     CLASS-METHODS random_percent
       RETURNING
         VALUE(rv_percent) TYPE i.
+
+    CLASS-METHODS openrouter_balance
+      RETURNING
+        VALUE(rs_metric) TYPE ty_metric.
 ENDCLASS.
 
 CLASS zcl_provider IMPLEMENTATION.
@@ -54,7 +59,16 @@ CLASS zcl_provider IMPLEMENTATION.
         logo = `/openrouter.svg`
         name = `OpenRouter`
         metrics = VALUE #(
-          ( kind = `balance` amount = '12.4' ) ) ) ).
+          ( openrouter_balance( ) ) ) ) ).
+  ENDMETHOD.
+
+  METHOD openrouter_balance.
+    DATA(ls_balance) = zcl_openrouter_client=>get_remaining_credits( ).
+
+    rs_metric = VALUE #(
+      kind   = `balance`
+      amount = ls_balance-amount
+      error  = ls_balance-error ).
   ENDMETHOD.
 
   METHOD random_percent.

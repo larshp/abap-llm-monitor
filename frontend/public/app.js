@@ -31,6 +31,10 @@ function formatNumber(value) {
 }
 
 function formatCurrency(value) {
+  if (!Number.isFinite(value)) {
+    return "Unavailable";
+  }
+
   return new Intl.NumberFormat("en-US", {
     currency: "USD",
     style: "currency"
@@ -66,10 +70,18 @@ function metricValue(metric) {
     return `${formatNumber(metric.used)} / ${formatNumber(metric.total)}`;
   }
 
+  if (metric.error) {
+    return "Unavailable";
+  }
+
   return formatCurrency(metric.amount);
 }
 
 function metricDetail(metric) {
+  if (metric.kind === "balance" && metric.error) {
+    return metric.error;
+  }
+
   return metric.kind === "credits" ? "used / total" : "remaining";
 }
 
@@ -100,6 +112,10 @@ function metricAriaLabel(provider, metric) {
 
   if (metric.kind === "credits") {
     return `${provider.name} ${metric.period} credits ${metric.used} used of ${metric.total} total, ${resetText(metric).toLowerCase()}`;
+  }
+
+  if (metric.error || !Number.isFinite(metric.amount)) {
+    return `${provider.name} account balance unavailable`;
   }
 
   const dollars = Math.floor(metric.amount);

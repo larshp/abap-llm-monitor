@@ -1,11 +1,13 @@
 import express from "express";
 import { initializeABAP } from "./output/init.mjs";
 import { cl_express_icf_shim } from "./output/cl_express_icf_shim.clas.mjs";
+import { zcl_icf_handler } from "./output/zcl_icf_handler.clas.mjs";
 
 const host = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT || 3050);
 
 await initializeABAP();
+zcl_icf_handler.openrouter_api_key.set(process.env.OPENROUTER_API_KEY || "");
 
 const app = express();
 app.disable("x-powered-by");
