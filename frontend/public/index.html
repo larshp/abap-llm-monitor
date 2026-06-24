@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ABAP LLM Monitor</title>
+    <title>LLM Monitor</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
@@ -12,80 +12,8 @@
         <div class="provider-grid" aria-label="LLM provider usage panels" id="provider-grid"></div>
       </section>
     </main>
-    <script id="metrics-data" type="application/json">
-      [
-        {
-          "id": "codex",
-          "logo": "/openai.svg",
-          "name": "OpenAI Codex",
-          "metrics": [
-            {
-              "kind": "usage",
-              "remainingPercent": 58,
-              "reset": "12:52 PM",
-              "window": "5 hour"
-            },
-            {
-              "kind": "usage",
-              "remainingPercent": 74,
-              "reset": "Monday",
-              "window": "weekly"
-            }
-          ]
-        },
-        {
-          "id": "copilot",
-          "logo": "/githubcopilot.svg",
-          "name": "GitHub Copilot",
-          "metrics": [
-            {
-              "kind": "credits",
-              "period": "monthly",
-              "reset": "July 1, 12:00 AM",
-              "total": 25000,
-              "used": 6580
-            }
-          ]
-        },
-        {
-          "id": "claude",
-          "logo": "/claude.svg",
-          "name": "Claude Code",
-          "metrics": [
-            {
-              "kind": "usage",
-              "remainingPercent": 42,
-              "reset": "1:20 PM",
-              "window": "5 hour"
-            },
-            {
-              "kind": "usage",
-              "remainingPercent": 63,
-              "reset": "Monday",
-              "window": "weekly"
-            }
-          ]
-        },
-        {
-          "id": "openrouter",
-          "logo": "/openrouter.svg",
-          "name": "OpenRouter",
-          "metrics": [
-            {
-              "amount": 12.4,
-              "kind": "balance"
-            }
-          ]
-        }
-      ]
-    </script>
     <script>
-      const metricsData = JSON.parse(document.getElementById("metrics-data").textContent);
       const providerGrid = document.getElementById("provider-grid");
-
-      function randomInteger(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      }
 
       function levelForPercent(percent) {
         if (percent < 50) {
@@ -108,66 +36,6 @@
           currency: "USD",
           style: "currency"
         }).format(value);
-      }
-
-      function formatResetTime(date) {
-        return new Intl.DateTimeFormat("en-US", {
-          hour: "numeric",
-          minute: "2-digit"
-        }).format(date);
-      }
-
-      function randomResetTime() {
-        const resetDate = new Date();
-        resetDate.setMinutes(resetDate.getMinutes() + randomInteger(20, 300));
-        return formatResetTime(resetDate);
-      }
-
-      function randomizeCreditsMetric(metric) {
-        const used = randomInteger(1000, metric.total - 2000);
-
-        return {
-          ...metric,
-          used
-        };
-      }
-
-      function randomizeUsageMetric(metric) {
-        return {
-          ...metric,
-          remainingPercent: randomInteger(20, 95),
-          reset: metric.reset.includes(":") ? randomResetTime() : metric.reset
-        };
-      }
-
-      function randomizeBalanceMetric(metric) {
-        return {
-          ...metric,
-          amount: randomInteger(250, 5000) / 100
-        };
-      }
-
-      function randomizeMetric(metric) {
-        if (metric.kind === "credits") {
-          return randomizeCreditsMetric(metric);
-        }
-
-        if (metric.kind === "usage") {
-          return randomizeUsageMetric(metric);
-        }
-
-        if (metric.kind === "balance") {
-          return randomizeBalanceMetric(metric);
-        }
-
-        return metric;
-      }
-
-      function randomizeMetricsData(providers) {
-        return providers.map((provider) => ({
-          ...provider,
-          metrics: provider.metrics.map(randomizeMetric)
-        }));
       }
 
       function titleCase(value) {
@@ -306,7 +174,24 @@
         return card;
       }
 
-      providerGrid.append(...randomizeMetricsData(metricsData).map(renderProvider));
+      async function loadMetrics() {
+        const response = await fetch("/metrics.json");
+
+        if (!response.ok) {
+          throw new Error(`Unable to load metrics.json: ${response.status}`);
+        }
+
+        return response.json();
+      }
+
+      loadMetrics()
+        .then((metricsData) => {
+          providerGrid.append(...metricsData.map(renderProvider));
+        })
+        .catch((error) => {
+          providerGrid.textContent = "Unable to load metrics.";
+          console.error(error);
+        });
     </script>
   </body>
 </html>
