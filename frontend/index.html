@@ -9,9 +9,17 @@
   <body>
     <main class="shell">
       <section class="dashboard" aria-labelledby="page-title">
-        <div class="refresh-status" id="refresh-status" role="status" aria-live="polite" hidden>
-          <span class="refresh-spinner" aria-hidden="true"></span>
-          <span>Loading</span>
+        <div class="refresh-controls" aria-label="Refresh controls">
+          <button class="refresh-button" id="refresh-button" type="button" aria-label="Refresh metrics">
+            Refresh
+          </button>
+          <button class="refresh-button theme-toggle-button" id="theme-toggle-button" type="button" aria-label="Toggle dimmed mode" aria-pressed="false">
+            Dim mode
+          </button>
+          <div class="refresh-status" id="refresh-status" role="status" aria-live="polite" hidden>
+            <span class="refresh-spinner" aria-hidden="true"></span>
+            <span>Loading</span>
+          </div>
         </div>
         <div class="provider-grid" aria-label="LLM provider usage panels" id="provider-grid"></div>
       </section>

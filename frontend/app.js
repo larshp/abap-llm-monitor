@@ -1,7 +1,41 @@
 const providerGrid = document.getElementById("provider-grid");
 const refreshStatus = document.getElementById("refresh-status");
-const refreshIntervalMs = 5000;
+const refreshButton = document.getElementById("refresh-button");
+const themeToggleButton = document.getElementById("theme-toggle-button");
+const refreshIntervalMs = 10 * 60 * 1000;
 const minimumLoadingMs = 200;
+const themeStorageKey = "llm-monitor-theme";
+let isRefreshing = false;
+
+function applyTheme(theme) {
+  const dimmedMode = theme === "dimmed";
+  document.body.classList.toggle("dimmed-mode", dimmedMode);
+
+  if (themeToggleButton) {
+    themeToggleButton.textContent = dimmedMode ? "Light mode" : "Dim mode";
+    themeToggleButton.setAttribute("aria-pressed", String(dimmedMode));
+  }
+}
+
+function initializeTheme() {
+  try {
+    const storedTheme = localStorage.getItem(themeStorageKey);
+    applyTheme(storedTheme === "dimmed" ? "dimmed" : "light");
+  } catch {
+    applyTheme("light");
+  }
+}
+
+function toggleTheme() {
+  const nextTheme = document.body.classList.contains("dimmed-mode") ? "light" : "dimmed";
+  applyTheme(nextTheme);
+
+  try {
+    localStorage.setItem(themeStorageKey, nextTheme);
+  } catch {
+    // Ignore persistence errors and keep runtime toggle behavior.
+  }
+}
 
 function delay(ms) {
   return new Promise((resolve) => {
@@ -45,6 +79,10 @@ function titleCase(value) {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
+function usageRemainingPercent(metric) {
+  return Number.isFinite(metric.remainingPercent) ? metric.remainingPercent : 0;
+}
+
 function resetText(metric) {
   return metric.reset ? `Resets ${metric.reset}` : "";
 }
@@ -71,7 +109,7 @@ function metricValue(metric) {
   }
 
   if (metric.kind === "usage") {
-    return `${metric.remainingPercent}%`;
+    return `${usageRemainingPercent(metric)}%`;
   }
 
   if (metric.kind === "credits") {
@@ -111,9 +149,11 @@ function metricMeter(metric) {
   }
 
   if (metric.kind === "usage") {
+    const remainingPercent = usageRemainingPercent(metric);
+
     return {
-      level: levelForPercent(metric.remainingPercent),
-      percent: metric.remainingPercent
+      level: levelForPercent(remainingPercent),
+      percent: remainingPercent
     };
   }
 
@@ -135,7 +175,7 @@ function metricAriaLabel(provider, metric) {
       return `${provider.name} ${metric.window} usage limit unavailable`;
     }
 
-    return `${provider.name} ${metric.window} usage limit ${metric.remainingPercent} percent remaining`;
+    return `${provider.name} ${metric.window} usage limit ${usageRemainingPercent(metric)} percent remaining`;
   }
 
   if (metric.kind === "credits") {
@@ -318,6 +358,12 @@ async function loadMetrics() {
 }
 
 async function refreshMetrics() {
+  if (isRefreshing) {
+    return;
+  }
+
+  isRefreshing = true;
+  refreshButton.disabled = true;
   const minimumLoadingDelay = showRefreshStatus();
 
   try {
@@ -332,8 +378,19 @@ async function refreshMetrics() {
   } finally {
     await minimumLoadingDelay;
     refreshStatus.hidden = true;
+    refreshButton.disabled = false;
+    isRefreshing = false;
   }
 }
 
+refreshButton.addEventListener("click", () => {
+  refreshMetrics();
+});
+
+themeToggleButton.addEventListener("click", () => {
+  toggleTheme();
+});
+
+initializeTheme();
 refreshMetrics();
 setInterval(refreshMetrics, refreshIntervalMs);

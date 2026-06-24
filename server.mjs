@@ -5,6 +5,7 @@ import { initializeABAP } from "./output/init.mjs";
 import { cl_express_icf_shim } from "./output/cl_express_icf_shim.clas.mjs";
 import { zcl_env_config } from "./output/zcl_env_config.clas.mjs";
 import { zcl_icf_handler } from "./output/zcl_icf_handler.clas.mjs";
+import { resolveCodexCredentials } from "./codex.mjs";
 
 const host = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT || 3050);
@@ -12,10 +13,9 @@ const publicDir = join(dirname(fileURLToPath(import.meta.url)), "frontend");
 export const serverUrl = `http://${host}:${port}`;
 
 await initializeABAP();
-zcl_env_config.codex_access_token.set(process.env.CODEX_ACCESS_TOKEN || process.env.CODEX_API_KEY || "");
-zcl_env_config.codex_account_id.set(process.env.CODEX_ACCOUNT_ID || process.env.CHATGPT_ACCOUNT_ID || "");
-zcl_env_config.codex_plan.set(process.env.CODEX_PLAN || process.env.CHATGPT_PLAN || "");
-zcl_env_config.codex_usage_url.set(process.env.CODEX_USAGE_URL || "https://chatgpt.com/backend-api/wham/usage");
+const codexCredentials = await resolveCodexCredentials();
+zcl_env_config.codex_access_token.set(codexCredentials.accessToken || "");
+zcl_env_config.codex_account_id.set(codexCredentials.accountId || "");
 zcl_env_config.openrouter_api_key.set(process.env.OPENROUTER_API_KEY || "");
 
 const app = express();
