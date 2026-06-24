@@ -9,6 +9,7 @@ import { zcl_icf_handler } from "./output/zcl_icf_handler.clas.mjs";
 const host = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT || 3050);
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), "frontend");
+export const serverUrl = `http://${host}:${port}`;
 
 await initializeABAP();
 zcl_env_config.codex_access_token.set(process.env.CODEX_ACCESS_TOKEN || process.env.CODEX_API_KEY || "");
@@ -48,10 +49,14 @@ app.use((request, response) => {
   response.status(404).type("text/plain").send("Not Found");
 });
 
-const server = app.listen(port, host, () => {
-  console.log(`Metrics REST service listening at http://${host}:${port}/metrics.json`);
-  console.log(`Serving static files from ${publicDir}`);
-  console.log(`Frontend available at http://${host}:${port}`);
+export let server;
+export const serverReady = new Promise((resolve) => {
+  server = app.listen(port, host, () => {
+    console.log(`Metrics REST service listening at http://${host}:${port}/metrics.json`);
+    console.log(`Serving static files from ${publicDir}`);
+    console.log(`Frontend available at ${serverUrl}`);
+    resolve(server);
+  });
 });
 
 process.on("SIGINT", () => server.close(() => process.exit(0)));
