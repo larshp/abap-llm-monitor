@@ -5,9 +5,7 @@
   "description": "Monitor LLM usage and more",
   "main": "index.js",
   "scripts": {
-    "backend": "rm -rf output && abap_transpile && node --env-file=.env backend.mjs",
-    "frontend": "node frontend/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "rm -rf output && abap_transpile && node --env-file=.env server.mjs"
   },
   "repository": {
     "type": "git",
@@ -22,11 +20,8 @@
   "dependencies": {
     "@abaplint/cli": "^2.119.41",
     "@abaplint/runtime": "^2.13.30",
-    "@abaplint/transpiler": "^2.13.30"
-  },
-  "devDependencies": {
+    "@abaplint/transpiler": "^2.13.30",
     "@abaplint/transpiler-cli": "^2.13.30",
-    "express": "^4.22.2",
-    "express-icf-shim": "github:open-abap/express-icf-shim"
+    "express": "^4.22.2"
   }
 }
