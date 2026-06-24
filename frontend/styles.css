@@ -226,6 +226,27 @@ h2 {
   overflow-wrap: anywhere;
 }
 
+.limit-block.usage-inline-detail {
+  align-items: baseline;
+  column-gap: 0.55rem;
+  grid-template-columns: auto 1fr;
+}
+
+.limit-block.usage-inline-detail .metric-label,
+.limit-block.usage-inline-detail .reset-time,
+.limit-block.usage-inline-detail .usage-meter {
+  grid-column: 1 / -1;
+}
+
+.limit-block.usage-inline-detail strong {
+  grid-column: 1;
+}
+
+.limit-block.usage-inline-detail .limit-detail {
+  align-self: end;
+  grid-column: 2;
+}
+
 .limit-detail,
 .reset-time {
   color: #4f5e70;
