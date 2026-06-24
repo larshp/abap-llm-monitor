@@ -105,6 +105,114 @@
       const metricsData = JSON.parse(document.getElementById("metrics-data").textContent);
       const providerGrid = document.getElementById("provider-grid");
 
+      function randomInteger(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function levelForPercent(percent) {
+        if (percent < 50) {
+          return "low";
+        }
+
+        if (percent < 70) {
+          return "medium";
+        }
+
+        return "high";
+      }
+
+      function formatNumber(value) {
+        return new Intl.NumberFormat("en-US").format(value);
+      }
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat("en-US", {
+          currency: "USD",
+          style: "currency"
+        }).format(value);
+      }
+
+      function formatResetTime(date) {
+        return new Intl.DateTimeFormat("en-US", {
+          hour: "numeric",
+          minute: "2-digit"
+        }).format(date);
+      }
+
+      function randomResetTime() {
+        const resetDate = new Date();
+        resetDate.setMinutes(resetDate.getMinutes() + randomInteger(20, 300));
+        return `Resets ${formatResetTime(resetDate)}`;
+      }
+
+      function randomizePercentMetric(provider, metric) {
+        const percent = randomInteger(20, 95);
+
+        return {
+          ...metric,
+          ariaLabel: `${provider.name} ${metric.label} ${percent} percent remaining`,
+          meter: {
+            ...metric.meter,
+            level: levelForPercent(percent),
+            percent
+          },
+          reset: metric.reset?.includes(":") ? randomResetTime() : metric.reset,
+          value: `${percent}%`
+        };
+      }
+
+      function randomizeCreditsMetric(metric) {
+        const total = 25000;
+        const used = randomInteger(1000, 23000);
+        const remainingPercent = Math.round(((total - used) / total) * 100);
+
+        return {
+          ...metric,
+          ariaLabel: `Copilot monthly credits ${used} used of ${total} total, ${metric.reset.toLowerCase()}`,
+          meter: {
+            ...metric.meter,
+            level: levelForPercent(remainingPercent),
+            percent: remainingPercent
+          },
+          value: `${formatNumber(used)} / ${formatNumber(total)}`
+        };
+      }
+
+      function randomizeBalanceMetric(provider, metric) {
+        const balance = randomInteger(250, 5000) / 100;
+        const dollars = Math.floor(balance);
+        const cents = Math.round((balance - dollars) * 100);
+
+        return {
+          ...metric,
+          ariaLabel: `${provider.name} account balance ${dollars} dollars ${cents} cents remaining`,
+          value: formatCurrency(balance)
+        };
+      }
+
+      function randomizeMetric(provider, metric) {
+        if (metric.label === "Monthly credits") {
+          return randomizeCreditsMetric(metric);
+        }
+
+        if (metric.label === "Account balance") {
+          return randomizeBalanceMetric(provider, metric);
+        }
+
+        if (metric.meter) {
+          return randomizePercentMetric(provider, metric);
+        }
+
+        return metric;
+      }
+
+      function randomizeMetricsData(providers) {
+        return providers.map((provider) => ({
+          ...provider,
+          metrics: provider.metrics.map((metric) => randomizeMetric(provider, metric))
+        }));
+      }
+
       function createElement(tagName, options = {}) {
         const element = document.createElement(tagName);
 
@@ -167,7 +275,7 @@
         return card;
       }
 
-      providerGrid.append(...metricsData.map(renderProvider));
+      providerGrid.append(...randomizeMetricsData(metricsData).map(renderProvider));
     </script>
   </body>
 </html>
