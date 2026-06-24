@@ -6,6 +6,7 @@ const { extname, join, normalize, resolve, sep } = require("node:path");
 const publicDir = resolve(__dirname, "public");
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const host = process.env.HOST ?? "127.0.0.1";
+const backendUrl = new URL(process.env.BACKEND_URL ?? "http://127.0.0.1:3050");
 
 const contentTypes = new Map([
   [".css", "text/css; charset=utf-8"],
@@ -58,6 +59,31 @@ async function findStaticFile(requestUrl) {
   return null;
 }
 
+function isMetricsRequest(requestUrl) {
+  const url = new URL(requestUrl, `http://${host}:${port}`);
+  return url.pathname === "/metrics" || url.pathname === "/metrics.json";
+}
+
+async function proxyMetricsRequest(request, response) {
+  const backendMetricsUrl = new URL(request.url ?? "/metrics.json", backendUrl);
+  const backendResponse = await fetch(backendMetricsUrl, {
+    headers: { Accept: "application/json" },
+    method: "GET"
+  });
+
+  response.writeHead(backendResponse.status, {
+    "Cache-Control": "no-store",
+    "Content-Type": backendResponse.headers.get("content-type") ?? "application/json; charset=utf-8"
+  });
+
+  if (request.method === "HEAD") {
+    response.end();
+    return;
+  }
+
+  response.end(await backendResponse.text());
+}
+
 const server = createServer(async (request, response) => {
   if (request.method !== "GET" && request.method !== "HEAD") {
     response.writeHead(405, {
@@ -65,6 +91,18 @@ const server = createServer(async (request, response) => {
       "Content-Type": "text/plain; charset=utf-8"
     });
     response.end("Method Not Allowed");
+    return;
+  }
+
+  if (isMetricsRequest(request.url ?? "/")) {
+    try {
+      await proxyMetricsRequest(request, response);
+    } catch (error) {
+      console.error(error);
+      response.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end("Bad Gateway");
+    }
+
     return;
   }
 
@@ -92,6 +130,7 @@ const server = createServer(async (request, response) => {
 server.listen(port, host, () => {
   console.log(`Serving static files from ${publicDir}`);
   console.log(`Frontend available at http://${host}:${port}`);
+  console.log(`Proxying metrics requests to ${backendUrl.origin}`);
 });
 
 let isShuttingDown = false;
