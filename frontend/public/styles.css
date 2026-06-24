@@ -137,8 +137,8 @@ h2 {
 
 .limit-block strong {
   display: block;
-  font-size: clamp(2rem, 4.6vw, 4rem);
-  line-height: 0.92;
+  font-size: clamp(1.45rem, 2.8vw, 2.55rem);
+  line-height: 1;
   overflow-wrap: anywhere;
 }
 
