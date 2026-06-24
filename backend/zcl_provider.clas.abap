@@ -41,8 +41,10 @@ CLASS zcl_provider IMPLEMENTATION.
 
   METHOD get_metrics.
     DATA(lt_codex_metrics) = VALUE ty_metrics( ).
+    DATA(lt_copilot_metrics) = VALUE ty_metrics( ).
 
     APPEND LINES OF codex_usage( ) TO lt_codex_metrics.
+    APPEND LINES OF zcl_copilot_provider=>get_metrics( ) TO lt_copilot_metrics.
 
     rt_providers = VALUE #(
       ( id = `codex`
@@ -52,8 +54,7 @@ CLASS zcl_provider IMPLEMENTATION.
       ( id = `copilot`
         logo = `/githubcopilot.svg`
         name = `GitHub Copilot`
-        metrics = VALUE #(
-          ( kind = `credits` period = `monthly` reset = `?` total = 25000 used = 0 ) ) )
+        metrics = lt_copilot_metrics )
       ( id = `claude`
         logo = `/claude.svg`
         name = `Claude Code`

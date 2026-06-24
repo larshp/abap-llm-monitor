@@ -6,6 +6,9 @@ import { cl_express_icf_shim } from "./output/cl_express_icf_shim.clas.mjs";
 import { zcl_env_config } from "./output/zcl_env_config.clas.mjs";
 import { zcl_icf_handler } from "./output/zcl_icf_handler.clas.mjs";
 import { resolveCodexCredentials } from "./codex.mjs";
+import { getCopilotQuota } from "./copilot.mjs";
+
+globalThis.getCopilotQuota = getCopilotQuota;
 
 const host = process.env.HOST || "127.0.0.1";
 const port = Number(process.env.PORT || 3050);
