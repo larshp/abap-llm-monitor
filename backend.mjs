@@ -1,0 +1,32 @@
+import express from "express";
+import { initializeABAP } from "./output/init.mjs";
+import { cl_express_icf_shim } from "./output/cl_express_icf_shim.clas.mjs";
+
+const host = process.env.HOST || "127.0.0.1";
+const port = Number(process.env.PORT || 3050);
+
+await initializeABAP();
+
+const app = express();
+app.disable("x-powered-by");
+app.set("etag", false);
+app.use(express.raw({ type: "*/*" }));
+
+app.all(["/metrics", "/metrics.json"], async (request, response) => {
+  await cl_express_icf_shim.run({
+    req: request,
+    res: response,
+    class: "ZCL_METRICS_ICF_HANDLER",
+  });
+});
+
+app.use((request, response) => {
+  response.status(404).type("application/json").send('{"error":"not found"}');
+});
+
+const server = app.listen(port, host, () => {
+  console.log(`Metrics REST service listening at http://${host}:${port}/metrics.json`);
+});
+
+process.on("SIGINT", () => server.close(() => process.exit(0)));
+process.on("SIGTERM", () => server.close(() => process.exit(0)));
