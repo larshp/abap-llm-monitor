@@ -8,10 +8,88 @@
   </head>
   <body>
     <main class="shell">
-      <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">Static frontend</p>
-        <h1 id="page-title">ABAP LLM Monitor</h1>
-        <p class="lede">Monitor LLM usage and related activity from a lightweight Node-served frontend.</p>
+      <section class="dashboard" aria-labelledby="page-title">
+        <div class="provider-grid" aria-label="LLM provider usage panels">
+          <article class="provider-card codex">
+            <header class="provider-header">
+              <div>
+                <h2>Codex</h2>
+              </div>
+            </header>
+            <div class="limit-stack">
+              <section class="limit-block" aria-label="Codex 5 hour usage limit 58 percent remaining">
+                <span class="metric-label">5 hour usage limit</span>
+                <strong>58%</strong>
+                <span class="limit-detail">remaining</span>
+                <span class="reset-time">Resets 12:52 PM</span>
+                <div class="usage-meter"><span style="width: 58%"></span></div>
+              </section>
+              <section class="limit-block" aria-label="Codex weekly usage limit 74 percent remaining">
+                <span class="metric-label">Weekly usage limit</span>
+                <strong>74%</strong>
+                <span class="limit-detail">remaining</span>
+                <span class="reset-time">Resets Monday</span>
+                <div class="usage-meter"><span style="width: 74%"></span></div>
+              </section>
+            </div>
+          </article>
+
+          <article class="provider-card claude">
+            <header class="provider-header">
+              <div>
+                <h2>Claude Code</h2>
+              </div>
+            </header>
+            <div class="limit-stack">
+              <section class="limit-block" aria-label="Claude Code 5 hour usage limit 42 percent remaining">
+                <span class="metric-label">5 hour usage limit</span>
+                <strong>42%</strong>
+                <span class="limit-detail">remaining</span>
+                <span class="reset-time">Resets 1:20 PM</span>
+                <div class="usage-meter"><span style="width: 42%"></span></div>
+              </section>
+              <section class="limit-block" aria-label="Claude Code weekly usage limit 63 percent remaining">
+                <span class="metric-label">Weekly usage limit</span>
+                <strong>63%</strong>
+                <span class="limit-detail">remaining</span>
+                <span class="reset-time">Resets Monday</span>
+                <div class="usage-meter"><span style="width: 63%"></span></div>
+              </section>
+            </div>
+          </article>
+
+          <article class="provider-card copilot">
+            <header class="provider-header">
+              <div>
+                <h2>GitHub Copilot</h2>
+              </div>
+            </header>
+            <div class="limit-stack">
+              <section class="limit-block" aria-label="Copilot monthly credits 6580 used of 25000 total, resets July 1 at 12:00 AM">
+                <span class="metric-label">Monthly credits</span>
+                <strong>6,580 / 25,000</strong>
+                <span class="limit-detail">used / total</span>
+                <span class="reset-time">Resets July 1, 12:00 AM</span>
+                <div class="usage-meter"><span style="width: 26%"></span></div>
+              </section>
+            </div>
+          </article>
+
+          <article class="provider-card openrouter">
+            <header class="provider-header">
+              <div>
+                <h2>OpenRouter</h2>
+              </div>
+            </header>
+            <div class="limit-stack">
+              <section class="limit-block" aria-label="OpenRouter account balance 12 dollars 40 cents remaining">
+                <span class="metric-label">Account balance</span>
+                <strong>$12.40</strong>
+                <span class="limit-detail">remaining</span>
+              </section>
+            </div>
+          </article>
+        </div>
       </section>
     </main>
   </body>
