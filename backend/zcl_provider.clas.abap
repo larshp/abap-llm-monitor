@@ -42,9 +42,11 @@ CLASS zcl_provider IMPLEMENTATION.
   METHOD get_metrics.
     DATA(lt_codex_metrics) = VALUE ty_metrics( ).
     DATA(lt_copilot_metrics) = VALUE ty_metrics( ).
+    DATA(lt_claude_metrics) = VALUE ty_metrics( ).
 
     APPEND LINES OF codex_usage( ) TO lt_codex_metrics.
     APPEND LINES OF zcl_copilot_provider=>get_metrics( ) TO lt_copilot_metrics.
+    APPEND LINES OF zcl_claude_provider=>get_metrics( ) TO lt_claude_metrics.
 
     rt_providers = VALUE #(
       ( id = `codex`
@@ -58,9 +60,7 @@ CLASS zcl_provider IMPLEMENTATION.
       ( id = `claude`
         logo = `/claude.svg`
         name = `Claude Code`
-        metrics = VALUE #(
-          ( kind = `usage` remaining_percent = 0 reset = `?` window = `5 hour` )
-          ( kind = `usage` remaining_percent = 0 reset = `?` window = `weekly` ) ) )
+        metrics = lt_claude_metrics )
       ( id = `openrouter`
         logo = `/openrouter.svg`
         name = `OpenRouter`
