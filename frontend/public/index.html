@@ -9,11 +9,17 @@
   <body>
     <main class="shell">
       <section class="dashboard" aria-labelledby="page-title">
+        <div class="refresh-status" id="refresh-status" role="status" aria-live="polite" hidden>
+          <span class="refresh-spinner" aria-hidden="true"></span>
+          <span>Loading</span>
+        </div>
         <div class="provider-grid" aria-label="LLM provider usage panels" id="provider-grid"></div>
       </section>
     </main>
     <script>
       const providerGrid = document.getElementById("provider-grid");
+      const refreshStatus = document.getElementById("refresh-status");
+      const refreshIntervalMs = 5000;
 
       function levelForPercent(percent) {
         if (percent < 50) {
@@ -175,6 +181,7 @@
       }
 
       async function loadMetrics() {
+        refreshStatus.hidden = false;
         const response = await fetch("/metrics.json");
 
         if (!response.ok) {
@@ -184,14 +191,23 @@
         return response.json();
       }
 
-      loadMetrics()
-        .then((metricsData) => {
-          providerGrid.append(...metricsData.map(renderProvider));
-        })
-        .catch((error) => {
-          providerGrid.textContent = "Unable to load metrics.";
+      async function refreshMetrics() {
+        try {
+          const metricsData = await loadMetrics();
+          providerGrid.replaceChildren(...metricsData.map(renderProvider));
+        } catch (error) {
+          if (!providerGrid.children.length) {
+            providerGrid.textContent = "Unable to load metrics.";
+          }
+
           console.error(error);
-        });
+        } finally {
+          refreshStatus.hidden = true;
+        }
+      }
+
+      refreshMetrics();
+      setInterval(refreshMetrics, refreshIntervalMs);
     </script>
   </body>
 </html>
