@@ -1,8 +1,33 @@
-import { CopilotClient } from "@github/copilot-sdk";
-import { pathToFileURL } from "node:url";
+import { CopilotClient, RuntimeConnection } from "@github/copilot-sdk";
+import { fileURLToPath } from "node:url";
+
+function getPlatformPackageName() {
+  const variants = process.platform === "linux" ? ["linux", "linuxmusl"] : [process.platform];
+
+  return variants.map((variant) => `@github/copilot-${variant}-${process.arch}`);
+}
+
+function resolveElectronCliPath() {
+  if (!process.versions.electron) {
+    return undefined;
+  }
+
+  for (const packageName of getPlatformPackageName()) {
+    try {
+      return fileURLToPath(import.meta.resolve(packageName));
+    } catch {
+      // Try the next platform package variant.
+    }
+  }
+
+  return undefined;
+}
 
 export async function getCopilotQuota() {
-  const client = new CopilotClient();
+  const cliPath = resolveElectronCliPath();
+  const client = new CopilotClient(cliPath ? {
+    connection: RuntimeConnection.forTcp({ path: cliPath }),
+  } : undefined);
   await client.start();
 
   try {

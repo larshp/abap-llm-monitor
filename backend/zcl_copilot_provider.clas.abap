@@ -47,7 +47,7 @@ CLASS zcl_copilot_provider IMPLEMENTATION.
 
     IF ls_response-error IS NOT INITIAL.
       rt_metrics = VALUE #(
-        ( kind = `credits` period = ls_response-period error = ls_response-error ) ).
+        ( kind = `credits` period = `monthly` error = ls_response-error ) ).
       RETURN.
     ENDIF.
 
