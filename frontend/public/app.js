@@ -58,10 +58,18 @@ function metricLabel(metric) {
     return `${titleCase(metric.period)} credits`;
   }
 
+  if (metric.kind === "quota") {
+    return "Codex quota";
+  }
+
   return "Account balance";
 }
 
 function metricValue(metric) {
+  if (metric.error) {
+    return "Unavailable";
+  }
+
   if (metric.kind === "usage") {
     return `${metric.remainingPercent}%`;
   }
@@ -70,22 +78,38 @@ function metricValue(metric) {
     return `${formatNumber(metric.used)} / ${formatNumber(metric.total)}`;
   }
 
-  if (metric.error) {
-    return "Unavailable";
+  if (metric.kind === "quota") {
+    return metric.quota;
   }
 
   return formatCurrency(metric.amount);
 }
 
 function metricDetail(metric) {
-  if (metric.kind === "balance" && metric.error) {
+  if (metric.error) {
     return metric.error;
   }
 
-  return metric.kind === "credits" ? "used / total" : "remaining";
+  if (metric.kind === "credits") {
+    return "used / total";
+  }
+
+  if (metric.kind === "quota" && metric.multiplier) {
+    return `${metric.multiplier}x Plus usage allowance`;
+  }
+
+  if (metric.kind === "quota") {
+    return "Plan usage allowance";
+  }
+
+  return "remaining";
 }
 
 function metricMeter(metric) {
+  if (metric.error) {
+    return null;
+  }
+
   if (metric.kind === "usage") {
     return {
       level: levelForPercent(metric.remainingPercent),
@@ -107,11 +131,21 @@ function metricMeter(metric) {
 
 function metricAriaLabel(provider, metric) {
   if (metric.kind === "usage") {
+    if (metric.error) {
+      return `${provider.name} ${metric.window} usage limit unavailable`;
+    }
+
     return `${provider.name} ${metric.window} usage limit ${metric.remainingPercent} percent remaining`;
   }
 
   if (metric.kind === "credits") {
     return `${provider.name} ${metric.period} credits ${metric.used} used of ${metric.total} total, ${resetText(metric).toLowerCase()}`;
+  }
+
+  if (metric.kind === "quota") {
+    return metric.error
+      ? `${provider.name} Codex quota unavailable`
+      : `${provider.name} Codex quota ${metric.quota}`;
   }
 
   if (metric.error || !Number.isFinite(metric.amount)) {
