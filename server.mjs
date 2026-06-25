@@ -5,10 +5,11 @@ import { initializeABAP } from "./output/init.mjs";
 import { cl_express_icf_shim } from "./output/cl_express_icf_shim.clas.mjs";
 import { zcl_env_config } from "./output/zcl_env_config.clas.mjs";
 import { zcl_icf_handler } from "./output/zcl_icf_handler.clas.mjs";
-import { resolveCodexCredentials } from "./codex.mjs";
+import { getCodexUsage } from "./codex.mjs";
 import { getCopilotQuota } from "./copilot.mjs";
 import { getClaudeQuota } from "./claude.mjs";
 
+globalThis.getCodexUsage = getCodexUsage;
 globalThis.getCopilotQuota = getCopilotQuota;
 globalThis.getClaudeQuota = getClaudeQuota;
 
@@ -18,9 +19,6 @@ const publicDir = join(dirname(fileURLToPath(import.meta.url)), "frontend");
 export const serverUrl = `http://${host}:${port}`;
 
 await initializeABAP();
-const codexCredentials = await resolveCodexCredentials();
-zcl_env_config.codex_access_token.set(codexCredentials.accessToken || "");
-zcl_env_config.codex_account_id.set(codexCredentials.accountId || "");
 zcl_env_config.openrouter_api_key.set(process.env.OPENROUTER_API_KEY || "");
 
 const app = express();

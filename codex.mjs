@@ -1,125 +1,105 @@
-import { join } from "node:path";
-import { homedir } from "node:os";
-import { readFile } from "node:fs/promises";
+import { Codex } from "@openai/codex-sdk";
 
-const TOKEN_REFRESH_INTERVAL_MS = 8 * 24 * 60 * 60 * 1000;
-const REFRESH_URL = "https://auth.openai.com/oauth/token";
-const REFRESH_CLIENT_ID = "app_hmmtodo";
+const emptyWindow = {
+  has_data: false,
+  remaining_percent: 0,
+  reset: "",
+  window: "",
+};
 
-function getCodexAuthPath() {
-  const codexHome = process.env.CODEX_HOME;
-  return codexHome ? join(codexHome, "auth.json") : join(homedir(), ".codex", "auth.json");
+function normalizeWindow(window) {
+  if (!window || typeof window !== "object") return { ...emptyWindow };
+
+  return {
+    has_data: Boolean(window.has_data),
+    remaining_percent: Math.max(0, Math.min(100, Number(window.remaining_percent) || 0)),
+    reset: typeof window.reset === "string" ? window.reset : "",
+    window: typeof window.window === "string" ? window.window : "",
+  };
 }
 
-function parseIsoDate(value) {
-  if (typeof value !== "string" || !value) return null;
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
+function normalizeUsage(usage) {
+  return {
+    primary: normalizeWindow(usage?.primary),
+    secondary: normalizeWindow(usage?.secondary),
+    error: typeof usage?.error === "string" ? usage.error : "",
+  };
 }
 
-function shouldRefresh(lastRefreshIso) {
-  const lastRefresh = parseIsoDate(lastRefreshIso);
-  if (!lastRefresh) return true;
-  return (Date.now() - lastRefresh) > TOKEN_REFRESH_INTERVAL_MS;
+function parseStatusWindow(line) {
+  const remainingMatch = line.match(/(?:remaining|left)\D+(\d{1,3})\s*%/i)
+    || line.match(/(\d{1,3})\s*%\s*(?:remaining|left)/i);
+  const usedMatch = line.match(/(?:used|usage)\D+(\d{1,3})\s*%/i)
+    || line.match(/(\d{1,3})\s*%\s*(?:used|usage)/i);
+  const resetMatch = line.match(/\b(?:resets?|reset)\b\s*(?:at|in|on)?\s*([^,;]+)/i);
+  const windowMatch = line.match(/\b(\d+\s*(?:minute|hour|day|week|month)s?|daily|weekly|monthly|primary|secondary)\b/i);
+
+  if (!remainingMatch && !usedMatch) return null;
+
+  const percent = remainingMatch ? Number(remainingMatch[1]) : 100 - Number(usedMatch[1]);
+  return normalizeWindow({
+    has_data: true,
+    remaining_percent: percent,
+    reset: resetMatch ? resetMatch[1].trim() : "",
+    window: windowMatch ? windowMatch[1].toLowerCase() : "Codex",
+  });
 }
 
-async function loadCodexAuthJson() {
-  try {
-    const authPath = getCodexAuthPath();
-    const raw = await readFile(authPath, "utf8");
-    const parsed = JSON.parse(raw);
-    return { authPath, parsed };
-  } catch {
-    return null;
-  }
+function parseStatus(status) {
+  const windows = status
+    .split(/\r?\n/)
+    .map((line) => parseStatusWindow(line))
+    .filter(Boolean);
+
+  return normalizeUsage({
+    primary: windows[0] || emptyWindow,
+    secondary: windows[1] || emptyWindow,
+    error: windows.length > 0 ? "" : status.trim(),
+  });
 }
 
-async function refreshCodexTokens(refreshToken) {
-  const response = await fetch(REFRESH_URL, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json",
+function parseUsageLimitError(message) {
+  if (!/\b(?:quota|usage) limit\b|quota exceeded/i.test(message)) return null;
+
+  const resetMatch = message.match(/try again at\s+(.+?)(?:\.|$)/i);
+  return normalizeUsage({
+    primary: {
+      has_data: true,
+      remaining_percent: 0,
+      reset: resetMatch ? resetMatch[1].trim() : "",
+      window: "Codex",
     },
-    body: JSON.stringify({
-      client_id: REFRESH_CLIENT_ID,
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      scope: "openid profile email",
-    }),
+    secondary: {
+      has_data: true,
+      remaining_percent: 0,
+      reset: resetMatch ? resetMatch[1].trim() : "",
+      window: "Codex",
+    },
+    error: "",
+  });
+}
+
+export async function getCodexQuota() {
+  const codex = new Codex();
+  const thread = codex.startThread({
+    approvalPolicy: "never",
+    networkAccessEnabled: true,
+    sandboxMode: "read-only",
+    skipGitRepoCheck: true,
+    workingDirectory: process.cwd(),
   });
 
-  if (!response.ok) {
-    return null;
+  let turn;
+  try {
+    turn = await thread.run("/status");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const usage = parseUsageLimitError(message);
+    if (usage) return usage;
+    throw error;
   }
 
-  const json = await response.json();
-  const accessToken = typeof json.access_token === "string" ? json.access_token : "";
-  if (!accessToken) {
-    return null;
-  }
-
-  return {
-    accessToken,
-    refreshToken: typeof json.refresh_token === "string" && json.refresh_token ? json.refresh_token : refreshToken,
-    idToken: typeof json.id_token === "string" ? json.id_token : null,
-  };
+  return parseStatus(turn.finalResponse);
 }
 
-export async function resolveCodexCredentials() {
-  const configuredAccessToken = process.env.CODEX_ACCESS_TOKEN || "";
-  const configuredApiKey = process.env.CODEX_API_KEY || "";
-  const configuredAccountId = process.env.CODEX_ACCOUNT_ID || process.env.CHATGPT_ACCOUNT_ID || "";
-
-  if (configuredAccessToken) {
-    console.log("Using CODEX_ACCESS_TOKEN from environment");
-    return {
-      accessToken: configuredAccessToken,
-      accountId: configuredAccountId,
-    };
-  }
-
-  const auth = await loadCodexAuthJson();
-  if (!auth) {
-    console.log("No auth.json found; using configured API key if available");
-    return {
-      accessToken: configuredApiKey,
-      accountId: configuredAccountId,
-    };
-  }
-
-  const authApiKey = typeof auth.parsed.OPENAI_API_KEY === "string" ? auth.parsed.OPENAI_API_KEY : "";
-  const tokens = auth.parsed.tokens && typeof auth.parsed.tokens === "object" ? auth.parsed.tokens : {};
-  let accessToken = typeof tokens.access_token === "string" ? tokens.access_token : "";
-  const refreshToken = typeof tokens.refresh_token === "string" ? tokens.refresh_token : "";
-  const accountIdFromAuth = typeof tokens.account_id === "string" ? tokens.account_id : "";
-
-  // If API key auth is configured, prefer a matching auth.json token set when available.
-  const canUseAuthTokens = !configuredApiKey || !authApiKey || configuredApiKey === authApiKey;
-  if (canUseAuthTokens && refreshToken && shouldRefresh(auth.parsed.last_refresh)) {
-    console.log("Refreshing Codex access token using refresh token from auth.json");
-    const refreshed = await refreshCodexTokens(refreshToken);
-    if (refreshed) {
-      accessToken = refreshed.accessToken;
-
-      const updated = {
-        ...auth.parsed,
-        tokens: {
-          ...(tokens || {}),
-          access_token: refreshed.accessToken,
-          refresh_token: refreshed.refreshToken,
-          ...(refreshed.idToken ? { id_token: refreshed.idToken } : {}),
-        },
-        last_refresh: new Date().toISOString(),
-      };
-
-      console.dir(updated, { depth: null, colors: true });
-      throw new Error("Token refresh persistence is disabled for now; uncomment writeFile to enable");
-    }
-  }
-
-  return {
-    accessToken: accessToken || configuredApiKey,
-    accountId: configuredAccountId || accountIdFromAuth,
-  };
-}
+export const getCodexUsage = getCodexQuota;

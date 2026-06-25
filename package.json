@@ -5,6 +5,7 @@
   "description": "Monitor LLM usage and more",
   "main": "index.js",
   "scripts": {
+    "codex-quota": "node --env-file=.env codex-quota.mjs",
     "copilot-quota": "node --env-file=.env copilot-quota.mjs",
     "claude-quota": "node --env-file=.env claude-quota.mjs",
     "start": "rm -rf output && abap_transpile && node --env-file=.env server.mjs",
@@ -27,6 +28,7 @@
     "@abaplint/transpiler-cli": "^2.13.30",
     "@anthropic-ai/claude-agent-sdk": "^0.3.190",
     "@github/copilot-sdk": "^1.0.3",
+    "@openai/codex-sdk": "^0.142.2",
     "electron": "^42.5.0",
     "express": "^4.22.2"
   }
