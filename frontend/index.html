@@ -16,9 +16,9 @@
           <button class="refresh-button theme-toggle-button" id="theme-toggle-button" type="button" aria-label="Toggle dark mode" aria-pressed="false">
             Dark mode
           </button>
-          <div class="refresh-status" id="refresh-status" role="status" aria-live="polite" hidden>
+          <div class="refresh-status is-loading" id="refresh-status" role="status" aria-live="polite">
             <span class="refresh-spinner" aria-hidden="true"></span>
-            <span>Loading</span>
+            <span class="refresh-status-text" id="refresh-status-text">Loading</span>
           </div>
         </div>
         <div class="provider-grid" aria-label="LLM provider usage panels" id="provider-grid"></div>

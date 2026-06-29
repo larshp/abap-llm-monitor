@@ -2,6 +2,7 @@
   color-scheme: light;
   font-family:
     "Aptos Display", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-size: 120%;
   color: #172033;
   background: #eef2f6;
 }
@@ -89,7 +90,7 @@ body {
   padding: 0.45rem 0.65rem;
 }
 
-.refresh-status[hidden] {
+.refresh-status:not(.is-loading) .refresh-spinner {
   display: none;
 }
 

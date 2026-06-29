@@ -1,5 +1,6 @@
 const providerGrid = document.getElementById("provider-grid");
 const refreshStatus = document.getElementById("refresh-status");
+const refreshStatusText = document.getElementById("refresh-status-text");
 const refreshButton = document.getElementById("refresh-button");
 const themeToggleButton = document.getElementById("theme-toggle-button");
 const refreshIntervalMs = 10 * 60 * 1000;
@@ -44,8 +45,15 @@ function delay(ms) {
 }
 
 function showRefreshStatus() {
-  refreshStatus.hidden = false;
+  refreshStatus.classList.add("is-loading");
+  refreshStatusText.textContent = "Loading";
   return delay(minimumLoadingMs);
+}
+
+function showLastRefreshTime() {
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  refreshStatus.classList.remove("is-loading");
+  refreshStatusText.textContent = `Updated ${time}`;
 }
 
 function levelForPercent(percent) {
@@ -383,7 +391,7 @@ async function refreshMetrics() {
     console.error(error);
   } finally {
     await minimumLoadingDelay;
-    refreshStatus.hidden = true;
+    showLastRefreshTime();
     refreshButton.disabled = false;
     isRefreshing = false;
   }
