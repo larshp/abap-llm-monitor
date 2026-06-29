@@ -60,8 +60,8 @@ function levelForPercent(percent) {
   return "high";
 }
 
-function formatNumber(value) {
-  return new Intl.NumberFormat("en-US").format(value);
+function formatPlainNumber(value) {
+  return new Intl.NumberFormat("en-US", { useGrouping: false }).format(value);
 }
 
 function formatCurrency(value) {
@@ -117,7 +117,7 @@ function metricValue(metric) {
   }
 
   if (metric.kind === "credits") {
-    return `${formatNumber(metric.used)} / ${formatNumber(metric.total)}`;
+    return `${formatPlainNumber(metric.used)} / ${formatPlainNumber(metric.total)}`;
   }
 
   if (metric.kind === "quota") {
