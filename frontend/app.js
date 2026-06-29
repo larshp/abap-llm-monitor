@@ -51,7 +51,7 @@ function showRefreshStatus() {
 }
 
 function showLastRefreshTime() {
-  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
   refreshStatus.classList.remove("is-loading");
   refreshStatusText.textContent = `Updated ${time}`;
 }
