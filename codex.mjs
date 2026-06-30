@@ -210,6 +210,22 @@ async function getCodexQuotaFromAppServer() {
   }
 }
 
+function createCodexThread() {
+  const codex = new Codex();
+  return codex.startThread({
+    approvalPolicy: "never",
+    networkAccessEnabled: true,
+    sandboxMode: "read-only",
+    skipGitRepoCheck: true,
+    workingDirectory: process.cwd(),
+  });
+}
+
+async function sendCodexHi() {
+  const thread = createCodexThread();
+  await thread.run("hi");
+}
+
 function parseStatusWindow(line) {
   const remainingMatch = line.match(/(?:remaining|left)\D+(\d{1,3})\s*%/i)
     || line.match(/(\d{1,3})\s*%\s*(?:remaining|left)/i);
@@ -263,7 +279,23 @@ function parseUsageLimitError(message) {
   });
 }
 
-export async function getCodexQuota() {
+function isFiveHourWindow(window) {
+  const label = String(window || "").toLowerCase();
+  return /\b5\s*hours?\b/.test(label)
+    || /\b5\s*-\s*hours?\b/.test(label)
+    || /\b5h\b/.test(label)
+    || /\b300\s*minutes?\b/.test(label)
+    || label === "primary";
+}
+
+function shouldPrimeCodexFiveHourLimit(usage) {
+  return [usage?.primary, usage?.secondary].some((window) => {
+    if (!window?.has_data || !isFiveHourWindow(window.window)) return false;
+    return Number(window.remaining_percent) >= 99;
+  });
+}
+
+async function readCodexQuota() {
   try {
     return await getCodexQuotaFromAppServer();
   } catch (error) {
@@ -277,14 +309,7 @@ export async function getCodexQuota() {
     }
   }
 
-  const codex = new Codex();
-  const thread = codex.startThread({
-    approvalPolicy: "never",
-    networkAccessEnabled: true,
-    sandboxMode: "read-only",
-    skipGitRepoCheck: true,
-    workingDirectory: process.cwd(),
-  });
+  const thread = createCodexThread();
 
   let turn;
   try {
@@ -297,6 +322,17 @@ export async function getCodexQuota() {
   }
 
   return parseStatus(turn.finalResponse);
+}
+
+export async function getCodexQuota() {
+  const quota = await readCodexQuota();
+
+  if (!shouldPrimeCodexFiveHourLimit(quota)) {
+    return quota;
+  }
+
+  await sendCodexHi();
+  return await readCodexQuota();
 }
 
 export const getCodexUsage = getCodexQuota;
