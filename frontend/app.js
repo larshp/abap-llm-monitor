@@ -99,6 +99,18 @@ function resetText(metric) {
   return metric.reset ? `Resets ${metric.reset}` : "";
 }
 
+function creditUsed(metric) {
+  return metric.used == null ? 0 : Number(metric.used);
+}
+
+function creditTotal(metric) {
+  return Number(metric.total);
+}
+
+function hasCreditTotal(metric) {
+  return Number.isFinite(creditTotal(metric)) && creditTotal(metric) > 0;
+}
+
 function metricLabel(metric) {
   if (metric.kind === "usage") {
     return `${titleCase(metric.window)} usage limit`;
@@ -125,7 +137,11 @@ function metricValue(metric) {
   }
 
   if (metric.kind === "credits") {
-    return `${formatPlainNumber(metric.used)} / ${formatPlainNumber(metric.total)}`;
+    if (!hasCreditTotal(metric)) {
+      return "Unavailable";
+    }
+
+    return `${formatPlainNumber(creditUsed(metric))} / ${formatPlainNumber(creditTotal(metric))}`;
   }
 
   if (metric.kind === "quota") {
@@ -170,11 +186,17 @@ function metricMeter(metric) {
   }
 
   if (metric.kind === "credits") {
-    const remainingPercent = Math.round(((metric.total - metric.used) / metric.total) * 100);
+    if (!hasCreditTotal(metric)) {
+      return null;
+    }
+
+    const used = creditUsed(metric);
+    const total = creditTotal(metric);
+    const remainingPercent = Math.round(((total - used) / total) * 100);
 
     return {
       level: levelForPercent(remainingPercent),
-      percent: remainingPercent
+      percent: Math.max(0, Math.min(100, remainingPercent))
     };
   }
 
@@ -191,7 +213,11 @@ function metricAriaLabel(provider, metric) {
   }
 
   if (metric.kind === "credits") {
-    return `${provider.name} ${metric.period} credits ${metric.used} used of ${metric.total} total, ${resetText(metric).toLowerCase()}`;
+    if (!hasCreditTotal(metric)) {
+      return `${provider.name} ${metric.period} credits unavailable`;
+    }
+
+    return `${provider.name} ${metric.period} credits ${creditUsed(metric)} used of ${creditTotal(metric)} total, ${resetText(metric).toLowerCase()}`;
   }
 
   if (metric.kind === "quota") {
