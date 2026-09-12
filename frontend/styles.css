@@ -127,7 +127,7 @@ h1 {
 
 .provider-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--provider-count, 4), minmax(0, 1fr));
   gap: 1rem;
   min-height: 0;
 }
@@ -168,6 +168,10 @@ h1 {
 
 .openrouter::before {
   background: #275f9f;
+}
+
+.opencode::before {
+  background: #4b5563;
 }
 
 .provider-header {
