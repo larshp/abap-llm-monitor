@@ -64,12 +64,16 @@ CLASS zcl_provider IMPLEMENTATION.
       ( id = `claude`
         logo = `/claude.svg`
         name = `Claude Code`
-        metrics = lt_claude_metrics )
-      ( id = `openrouter`
+        metrics = lt_claude_metrics ) ).
+
+    IF zcl_env_config=>openrouter_api_key IS NOT INITIAL.
+      APPEND VALUE #(
+        id = `openrouter`
         logo = `/openrouter.svg`
         name = `OpenRouter`
         metrics = VALUE #(
-          ( openrouter_balance( ) ) ) ) ).
+          ( openrouter_balance( ) ) ) ) TO rt_providers.
+    ENDIF.
 
     " OpenCode is only listed when an API key is configured
     IF zcl_env_config=>opencode_api_key IS NOT INITIAL.
