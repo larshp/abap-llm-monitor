@@ -45,11 +45,11 @@ CLASS zcl_provider IMPLEMENTATION.
 
   METHOD get_metrics.
     DATA(lt_codex_metrics) = VALUE ty_metrics( ).
-    DATA(lt_copilot_metrics) = VALUE ty_metrics( ).
+*    DATA(lt_copilot_metrics) = VALUE ty_metrics( ).
     DATA(lt_claude_metrics) = VALUE ty_metrics( ).
 
     APPEND LINES OF codex_usage( ) TO lt_codex_metrics.
-    APPEND LINES OF zcl_copilot_provider=>get_metrics( ) TO lt_copilot_metrics.
+*    APPEND LINES OF zcl_copilot_provider=>get_metrics( ) TO lt_copilot_metrics.
     APPEND LINES OF zcl_claude_provider=>get_metrics( ) TO lt_claude_metrics.
 
     rt_providers = VALUE #(
@@ -57,10 +57,10 @@ CLASS zcl_provider IMPLEMENTATION.
         logo = `/openai.svg`
         name = `OpenAI Codex`
         metrics = lt_codex_metrics )
-      ( id = `copilot`
-        logo = `/githubcopilot.svg`
-        name = `GitHub Copilot`
-        metrics = lt_copilot_metrics )
+*      ( id = `copilot`
+*        logo = `/githubcopilot.svg`
+*        name = `GitHub Copilot`
+*        metrics = lt_copilot_metrics )
       ( id = `claude`
         logo = `/claude.svg`
         name = `Claude Code`
