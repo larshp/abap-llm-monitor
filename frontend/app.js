@@ -385,8 +385,6 @@ function renderMetrics(metricsData) {
 
     providerGrid.append(renderProvider(provider));
   });
-
-  providerGrid.style.setProperty("--provider-count", String(providerGrid.children.length));
 }
 
 async function loadMetrics() {
