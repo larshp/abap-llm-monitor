@@ -21,6 +21,12 @@ export const serverUrl = `http://${host}:${port}`;
 await initializeABAP();
 zcl_env_config.openrouter_api_key.set(process.env.OPENROUTER_API_KEY || "");
 zcl_env_config.opencode_api_key.set(process.env.OPENCODE_API_KEY || "");
+const skipCodex = ["1", "true", "yes"].includes((process.env.SKIP_CODEX || "").trim().toLowerCase());
+zcl_env_config.skip_codex.set(skipCodex ? "X" : "");
+
+if (skipCodex) {
+  console.log("SKIP_CODEX is set, the OpenAI Codex panel is hidden.");
+}
 
 if (!process.env.OPENCODE_API_KEY) {
   console.log("OPENCODE_API_KEY is not set, the OpenCode Go panel is hidden. Add OPENCODE_API_KEY=<key> to .env to show it.");

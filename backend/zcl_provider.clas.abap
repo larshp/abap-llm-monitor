@@ -44,19 +44,22 @@ ENDCLASS.
 CLASS zcl_provider IMPLEMENTATION.
 
   METHOD get_metrics.
-    DATA(lt_codex_metrics) = VALUE ty_metrics( ).
 *    DATA(lt_copilot_metrics) = VALUE ty_metrics( ).
     DATA(lt_claude_metrics) = VALUE ty_metrics( ).
 
-    APPEND LINES OF codex_usage( ) TO lt_codex_metrics.
 *    APPEND LINES OF zcl_copilot_provider=>get_metrics( ) TO lt_copilot_metrics.
     APPEND LINES OF zcl_claude_provider=>get_metrics( ) TO lt_claude_metrics.
 
-    rt_providers = VALUE #(
-      ( id = `codex`
+    " Codex is hidden when SKIP_CODEX is set
+    IF zcl_env_config=>skip_codex = abap_false.
+      APPEND VALUE #(
+        id = `codex`
         logo = `/openai.svg`
         name = `OpenAI Codex`
-        metrics = lt_codex_metrics )
+        metrics = codex_usage( ) ) TO rt_providers.
+    ENDIF.
+
+    APPEND LINES OF VALUE ty_providers(
 *      ( id = `copilot`
 *        logo = `/githubcopilot.svg`
 *        name = `GitHub Copilot`
@@ -64,7 +67,7 @@ CLASS zcl_provider IMPLEMENTATION.
       ( id = `claude`
         logo = `/claude.svg`
         name = `Claude Code`
-        metrics = lt_claude_metrics ) ).
+        metrics = lt_claude_metrics ) ) TO rt_providers.
 
     IF zcl_env_config=>openrouter_api_key IS NOT INITIAL.
       APPEND VALUE #(
