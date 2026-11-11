@@ -12,3 +12,5 @@ Set `OPENROUTER_API_KEY` to fetch remaining OpenRouter credits from `https://ope
 Set `OPENCODE_API_KEY` to fetch OpenCode Go subscription usage from `https://opencode.ai/zen/go/v1/usage`. Without it the OpenCode Go panel is hidden and startup logs a reminder that the key can be added to `.env`.
 
 Set `SKIP_CODEX=true` (or `1`/`yes`) to hide the OpenAI Codex panel and skip fetching Codex usage.
+
+A GitHub card shows the overall status from `https://www.githubstatus.com/api/v2/summary.json`, plus any unresolved incidents and components that are not operational. No configuration is needed.

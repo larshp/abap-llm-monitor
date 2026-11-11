@@ -6,6 +6,7 @@ CLASS zcl_env_config DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
     CLASS-DATA openrouter_credits_url TYPE string VALUE `https://openrouter.ai/api/v1/credits`.
     CLASS-DATA opencode_usage_url TYPE string VALUE `https://opencode.ai/zen/go/v1/usage`.
+    CLASS-DATA github_status_url TYPE string VALUE `https://www.githubstatus.com/api/v2/summary.json`.
 ENDCLASS.
 
 CLASS zcl_env_config IMPLEMENTATION.

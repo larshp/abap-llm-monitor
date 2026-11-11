@@ -13,6 +13,9 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
         quota             TYPE string,
         multiplier        TYPE i,
         error             TYPE string,
+        indicator         TYPE string,
+        description       TYPE string,
+        detail            TYPE string,
       END OF ty_metric,
       ty_metrics TYPE STANDARD TABLE OF ty_metric WITH EMPTY KEY,
       BEGIN OF ty_provider,
@@ -39,6 +42,10 @@ CLASS zcl_provider DEFINITION PUBLIC FINAL CREATE PUBLIC.
     CLASS-METHODS opencode_usage
       RETURNING
         VALUE(rt_metrics) TYPE ty_metrics.
+
+    CLASS-METHODS github_status
+      RETURNING
+        VALUE(rt_metrics) TYPE ty_metrics.
 ENDCLASS.
 
 CLASS zcl_provider IMPLEMENTATION.
@@ -48,7 +55,8 @@ CLASS zcl_provider IMPLEMENTATION.
     DATA(lt_claude_metrics) = VALUE ty_metrics( ).
 
 *    APPEND LINES OF zcl_copilot_provider=>get_metrics( ) TO lt_copilot_metrics.
-    APPEND LINES OF zcl_claude_provider=>get_metrics( ) TO lt_claude_metrics.
+    " the Claude type lacks the status fields, so map by name
+    lt_claude_metrics = CORRESPONDING #( zcl_claude_provider=>get_metrics( ) ).
 
     " Codex is hidden when SKIP_CODEX is set
     IF zcl_env_config=>skip_codex = abap_false.
@@ -86,6 +94,12 @@ CLASS zcl_provider IMPLEMENTATION.
         name = `OpenCode Go`
         metrics = opencode_usage( ) ) TO rt_providers.
     ENDIF.
+
+    APPEND VALUE #(
+      id = `github`
+      logo = `/github.svg`
+      name = `GitHub`
+      metrics = github_status( ) ) TO rt_providers.
   ENDMETHOD.
 
   METHOD codex_usage.
@@ -148,6 +162,25 @@ CLASS zcl_provider IMPLEMENTATION.
       rt_metrics = VALUE #(
         ( kind = `usage` window = `OpenCode` remaining_percent = 0 error = `OpenCode Go usage is not available` ) ).
     ENDIF.
+  ENDMETHOD.
+
+  METHOD github_status.
+    DATA(ls_status) = zcl_github_status_client=>get_status( ).
+
+    IF ls_status-error IS NOT INITIAL.
+      rt_metrics = VALUE #(
+        ( kind = `status` window = `Overall status` error = ls_status-error ) ).
+      RETURN.
+    ENDIF.
+
+    LOOP AT ls_status-entries INTO DATA(ls_entry).
+      APPEND VALUE #(
+        kind        = `status`
+        window      = ls_entry-label
+        description = ls_entry-description
+        indicator   = ls_entry-indicator
+        detail      = ls_entry-detail ) TO rt_metrics.
+    ENDLOOP.
   ENDMETHOD.
 
 ENDCLASS.

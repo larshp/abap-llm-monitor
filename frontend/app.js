@@ -124,6 +124,10 @@ function metricLabel(metric) {
     return "Codex quota";
   }
 
+  if (metric.kind === "status") {
+    return metric.window;
+  }
+
   return "Account balance";
 }
 
@@ -148,6 +152,10 @@ function metricValue(metric) {
     return metric.quota;
   }
 
+  if (metric.kind === "status") {
+    return metric.description;
+  }
+
   return formatCurrency(metric.amount);
 }
 
@@ -166,6 +174,10 @@ function metricDetail(metric) {
 
   if (metric.kind === "quota") {
     return "Plan usage allowance";
+  }
+
+  if (metric.kind === "status") {
+    return metric.detail || "";
   }
 
   return "remaining";
@@ -226,6 +238,12 @@ function metricAriaLabel(provider, metric) {
       : `${provider.name} Codex quota ${metric.quota}`;
   }
 
+  if (metric.kind === "status") {
+    return metric.error
+      ? `${provider.name} ${metric.window} unavailable`
+      : `${provider.name} ${metric.window}: ${metric.description}`;
+  }
+
   if (metric.error || !Number.isFinite(metric.amount)) {
     return `${provider.name} account balance unavailable`;
   }
@@ -266,6 +284,10 @@ function metricKey(metric, index) {
     return `${metric.kind}-${metric.window}`;
   }
 
+  if (metric.kind === "status") {
+    return `${metric.kind}-${metric.window}-${metric.description || ""}`;
+  }
+
   return `${metric.kind}-${index}`;
 }
 
@@ -279,9 +301,16 @@ function updateMeter(meter, meterData) {
   fill.style.width = `${meterData.percent}%`;
 }
 
+function applyStatusState(block, metric) {
+  const isStatus = metric.kind === "status";
+  block.classList.toggle("status-block", isStatus);
+  block.dataset.indicator = isStatus && !metric.error ? metric.indicator || "none" : "";
+}
+
 function updateMetric(block, provider, metric) {
   block.setAttribute("aria-label", metricAriaLabel(provider, metric));
   block.classList.toggle("usage-inline-detail", metric.kind === "usage");
+  applyStatusState(block, metric);
   block.querySelector(".metric-label").textContent = metricLabel(metric);
   block.querySelector("strong").textContent = metricValue(metric);
   block.querySelector(".limit-detail").textContent = metricDetail(metric);
@@ -298,6 +327,7 @@ function updateMetric(block, provider, metric) {
 function renderMetric(provider, metric) {
   const block = createElement("section", { className: "limit-block" });
   block.classList.toggle("usage-inline-detail", metric.kind === "usage");
+  applyStatusState(block, metric);
   block.setAttribute("aria-label", metricAriaLabel(provider, metric));
   block.append(
     createElement("span", { className: "metric-label", textContent: metricLabel(metric) }),
@@ -334,17 +364,22 @@ function updateProvider(card, provider) {
     [...limitStack.querySelectorAll(".limit-block")].map((block) => [block.dataset.metricKey, block])
   );
 
-  provider.metrics.forEach((metric, index) => {
+  const blocks = provider.metrics.map((metric, index) => {
     const key = metricKey(metric, index);
     const block = existingMetrics.get(key);
+    existingMetrics.delete(key);
 
     if (block) {
       updateMetric(block, provider, metric);
-      return;
+      return block;
     }
 
-    limitStack.append(renderMetricWithKey(provider, metric, index));
+    return renderMetricWithKey(provider, metric, index);
   });
+
+  // drop metrics no longer reported, eg resolved incidents, and keep server order
+  existingMetrics.forEach((block) => block.remove());
+  limitStack.append(...blocks);
 }
 
 function renderProvider(provider) {
